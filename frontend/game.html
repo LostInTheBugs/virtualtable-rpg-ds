@@ -851,6 +851,8 @@ body.display-mode .map-toolbar:hover{opacity:1;}
 body.display-mode .map-info{opacity:.3;}
 body.display-mode .map-info:hover{opacity:1;}
 body.display-mode #weatherCanvas{position:fixed;inset:0;pointer-events:none;z-index:5;}
+body.display-mode #mapCanvas{display:block;width:100%;height:100%;}
+body.display-mode #mapArea .map-toolbar{bottom:0;}
 </style>
 </head>
 <body>
@@ -1933,8 +1935,13 @@ async function loadCampaign() {
     // Mode écran central : pas besoin des sidebars ni du chargement des personnages
     document.querySelector('.sidebar-left')?.remove();
     document.querySelector('.sidebar-right')?.remove();
-    // La carte prend tout l'écran (géré par CSS .display-mode)
-    initCanvas();
+    // Attendre le reflow du navigateur avant d'initialiser le canvas
+    // pour qu'il prenne toute la taille de l'écran
+    requestAnimationFrame(() => {
+      initCanvas();
+      // Forcer le redimensionnement au cas où
+      resizeCanvas();
+    });
     // Ne pas appeler connectSocket() ici — ce sera fait après loadCampaign()
     return;
   }
