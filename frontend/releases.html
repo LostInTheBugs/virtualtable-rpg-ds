@@ -101,13 +101,42 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:.
 
   <div class="timeline">
 
-    <!-- v1.11 — Actuelle -->
+    <!-- v1.12 — Actuelle -->
     <div class="release latest">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.12</span>
+        <span class="release-date">Mai 2026</span>
+        <span class="release-tag tag-latest">Actuelle</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Mode Map unique</strong> — nouveau mode d'affichage pour jouer en présentiel avec un écran central : les joueurs voient uniquement la fiche et le chat, la carte est projetée sur un écran/TV dédié</li>
+            <li class="feat"><strong>Écran central dédié</strong> — <code>?mode=display</code> sur la page de jeu pour afficher la carte en plein écran, sans interface, idéal pour un projecteur</li>
+            <li class="feat"><strong>Bouton Carte</strong> — dans le lobby et dans l'interface de jeu pour ouvrir l'écran central en un clic</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-title">Améliorations</div>
+          <ul class="change-list">
+            <li class="improve"><strong>Trust proxy</strong> — correction du rate limiter derrière Apache proxy</li>
+            <li class="improve"><strong>Schéma DB</strong> — ajout des colonnes <code>failed_attempts</code>, <code>locked_until</code>, <code>last_login</code>, <code>is_admin</code> manquantes</li>
+            <li class="improve"><strong>Cartes par défaut</strong> — 10 images de cartes pré-installées (crypte, donjon, forêt, village, etc.)</li>
+            <li class="improve"><strong>Déploiement</strong> — script <code>deploy.sh</code> sans sudo (groupe docker) pour les mises à jour ; synchronisation automatique vers le DocumentRoot</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.11 -->
+    <div class="release">
       <div class="release-dot"></div>
       <div class="release-head">
         <span class="release-version">v1.11</span>
         <span class="release-date">Mai 2026</span>
-        <span class="release-tag tag-latest">Actuelle</span>
+        <span class="release-tag tag-stable">Stable</span>
       </div>
       <div class="release-body">
         <div class="change-group">
