@@ -2681,6 +2681,7 @@ function sendChat() {
 
 function addChatMessage(msg) {
   const el = document.getElementById('chatMessages');
+  if (!el) return; // mode display : pas de chat
   const time = new Date(msg.created_at).toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'});
   let html;
   if (msg.type === 'system') {
