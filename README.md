@@ -27,7 +27,7 @@ Table de jeu de rôle virtuelle en ligne, auto-hébergée.
 ### Installation en une commande
 
 ```bash
-git clone https://github.com/VOTRE_COMPTE/virtualtable-rpg.git
+git clone https://github.com/LostInTheBugs/virtualtable-rpg.git
 cd virtualtable-rpg
 sudo ./install.sh
 ```
