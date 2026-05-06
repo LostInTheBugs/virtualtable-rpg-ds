@@ -1935,13 +1935,7 @@ async function loadCampaign() {
     // Mode écran central : pas besoin des sidebars ni du chargement des personnages
     document.querySelector('.sidebar-left')?.remove();
     document.querySelector('.sidebar-right')?.remove();
-    // Attendre le reflow du navigateur avant d'initialiser le canvas
-    // pour qu'il prenne toute la taille de l'écran
-    requestAnimationFrame(() => {
-      initCanvas();
-      // Forcer le redimensionnement au cas où
-      resizeCanvas();
-    });
+    initCanvas();
     // Ne pas appeler connectSocket() ici — ce sera fait après loadCampaign()
     return;
   }
@@ -3866,9 +3860,14 @@ function initCanvas() {
 }
 
 function resizeCanvas() {
-  const area = document.getElementById('mapArea');
-  canvas.width = area.clientWidth;
-  canvas.height = area.clientHeight;
+  if (DISPLAY_MODE) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  } else {
+    const area = document.getElementById('mapArea');
+    canvas.width = area.clientWidth;
+    canvas.height = area.clientHeight;
+  }
   drawMap();
 }
 
