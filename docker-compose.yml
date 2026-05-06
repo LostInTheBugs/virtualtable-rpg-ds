@@ -1,31 +1,20 @@
+# Profils disponibles (combinables) :
+#   db    — PostgreSQL intégré
+#   nginx — nginx + certbot intégrés
+#
+# Exemples :
+#   COMPOSE_PROFILES=db,nginx  docker compose up -d  (tout intégré)
+#   COMPOSE_PROFILES=db        docker compose up -d  (DB intégrée, proxy externe)
+#   COMPOSE_PROFILES=nginx     docker compose up -d  (nginx intégré, DB externe)
+#   COMPOSE_PROFILES=          docker compose up -d  (tout externe)
+#
+# install.sh gère cette variable automatiquement.
+
 services:
 
-  nginx:
-    image: nginx:alpine
-    container_name: nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx:/etc/nginx/conf.d:ro
-      - ./frontend:/usr/share/nginx/html:ro
-      - ./certbot/www:/var/www/certbot:ro
-      - ./certbot/conf:/etc/letsencrypt:ro
-      - nginx-logs:/var/log/nginx
-    depends_on:
-      - rpg
-
-  certbot:
-    image: certbot/certbot:latest
-    container_name: certbot
-    restart: "no"
-    volumes:
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    command: renew --quiet
-
+  # ── Base de données (optionnelle) ──────────────────────────
   rpg-db:
+    profiles: [db]
     image: postgres:15-alpine
     container_name: rpg-db
     restart: unless-stopped
@@ -41,6 +30,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── Backend RPG ────────────────────────────────────────────
   rpg:
     build:
       context: ./backend
@@ -48,14 +38,14 @@ services:
     image: rpg-backend:latest
     container_name: rpg
     restart: unless-stopped
-    depends_on:
-      rpg-db:
-        condition: service_healthy
+    ports:
+      # Exposé directement si pas de nginx intégré, sinon accessible via nginx uniquement
+      - "${RPG_BIND:-127.0.0.1}:${RPG_PORT:-3001}:3001"
     environment:
-      DATABASE_URL: "postgresql://rpg:${RPG_DB_PASSWORD}@rpg-db:5432/rpg"
+      DATABASE_URL: "${DATABASE_URL}"
       JWT_SECRET: "${JWT_SECRET}"
       PORT: "3001"
-      ALLOWED_ORIGIN: "https://${DOMAIN}"
+      ALLOWED_ORIGIN: "${ALLOWED_ORIGIN}"
       UPLOAD_DIR: "/app/uploads"
     volumes:
       - ./frontend/uploads:/app/uploads
@@ -64,6 +54,34 @@ services:
       interval: 15s
       timeout: 10s
       retries: 10
+
+  # ── Nginx intégré (optionnel) ──────────────────────────────
+  nginx:
+    profiles: [nginx]
+    image: nginx:alpine
+    container_name: nginx-rpg
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d:ro
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - rpg
+
+  certbot:
+    profiles: [nginx]
+    image: certbot/certbot:latest
+    container_name: certbot-rpg
+    restart: "no"
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    command: renew --quiet
 
 volumes:
   rpg-db:

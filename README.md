@@ -21,10 +21,9 @@ Table de jeu de rôle virtuelle en ligne, auto-hébergée.
 
 - Un serveur Linux (Ubuntu 22.04 / Debian 12 recommandé)
 - Docker >= 20.10 avec le plugin Compose
-- Un nom de domaine pointant vers le serveur (enregistrement A)
-- Ports 80 et 443 ouverts
+- Git
 
-### Installation en une commande
+### Installation
 
 ```bash
 git clone https://github.com/LostInTheBugs/virtualtable-rpg.git
@@ -32,21 +31,27 @@ cd virtualtable-rpg
 sudo ./install.sh
 ```
 
-Le script :
-1. Vous demande votre domaine et email
-2. Génère automatiquement les secrets (JWT, mot de passe DB)
-3. Obtient un certificat SSL Let's Encrypt
-4. Lance l'application en HTTPS
-5. Configure le renouvellement automatique du certificat
+Le script pose trois questions au démarrage :
+
+**Serveur web** — trois options :
+- Nginx intégré (Docker) avec SSL automatique Let's Encrypt — recommandé pour un serveur vierge
+- Nginx ou Apache déjà installé — le script affiche les directives à ajouter à votre vhost
+- Aucun proxy — le backend est exposé directement sur le port 3001
+
+**Base de données** — deux options :
+- PostgreSQL intégré (Docker) — aucune configuration requise
+- PostgreSQL existant (local ou distant) — vous fournissez l'URL de connexion ; le schéma est appliqué automatiquement si `psql` est disponible
+
+Le script génère ensuite automatiquement les secrets (JWT, mot de passe DB) et démarre l'application.
 
 ### Configuration manuelle
 
-Si vous préférez configurer avant de lancer :
+Pour pré-remplir les paramètres avant de lancer :
 
 ```bash
 cp .env.example .env
-nano .env          # Renseigner DOMAIN, CERTBOT_EMAIL, et les secrets
-sudo ./install.sh
+nano .env          # Renseigner les valeurs souhaitées
+sudo ./install.sh  # Utilise les valeurs du .env, pose uniquement les questions manquantes
 ```
 
 ## Mise à jour
