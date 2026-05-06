@@ -165,6 +165,17 @@ echo ""
 mkdir -p certbot/www certbot/conf frontend/uploads nginx
 chmod 755 frontend/uploads
 
+# Copier les cartes par défaut si pas encore présentes
+if [[ -d frontend/maps ]]; then
+  COPIED=0
+  for f in frontend/maps/*.jpg frontend/maps/*.png 2>/dev/null; do
+    [[ -f "$f" ]] || continue
+    DEST="frontend/uploads/$(basename "$f")"
+    [[ ! -f "$DEST" ]] && cp "$f" "$DEST" && COPIED=$((COPIED+1))
+  done
+  [[ $COPIED -gt 0 ]] && success "${COPIED} carte(s) par défaut copiées dans uploads/."
+fi
+
 # ── 8. nginx intégré — SSL ────────────────────────────────────
 if $USE_BUNDLED_NGINX; then
   info "Configuration nginx temporaire (HTTP pour Let's Encrypt)..."
