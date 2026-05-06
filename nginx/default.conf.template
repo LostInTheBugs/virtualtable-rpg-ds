@@ -1,0 +1,57 @@
+# Configuration HTTPS — générée par install.sh depuis ce template.
+# DOMAIN_PLACEHOLDER est remplacé par votre domaine réel.
+
+server {
+    listen 80 default_server;
+    server_name _;
+    return 444;
+}
+
+server {
+    listen 80;
+    server_name DOMAIN_PLACEHOLDER;
+    location /.well-known/acme-challenge/ { root /var/www/certbot; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    listen 443 ssl default_server;
+    server_name _;
+    ssl_reject_handshake on;
+}
+
+server {
+    listen 443 ssl;
+    server_name DOMAIN_PLACEHOLDER;
+    http2 on;
+
+    ssl_certificate     /etc/letsencrypt/live/DOMAIN_PLACEHOLDER/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/DOMAIN_PLACEHOLDER/privkey.pem;
+    include             /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options SAMEORIGIN;
+    add_header X-Content-Type-Options nosniff;
+
+    root  /usr/share/nginx/html;
+    index index.html;
+
+    # ── RPG Backend (API REST + Socket.io) ─────────────────
+    location /rpg/ {
+        proxy_pass           http://rpg:3001/rpg/;
+        proxy_http_version   1.1;
+        proxy_set_header     Upgrade $http_upgrade;
+        proxy_set_header     Connection "upgrade";
+        proxy_set_header     Host $host;
+        proxy_set_header     X-Real-IP $remote_addr;
+        proxy_set_header     X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header     X-Forwarded-Proto $scheme;
+        proxy_read_timeout   3600;
+    }
+
+    # ── Frontend statique ──────────────────────────────────
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}

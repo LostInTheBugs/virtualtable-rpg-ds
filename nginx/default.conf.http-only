@@ -1,0 +1,21 @@
+# Configuration HTTP uniquement — utilisée AVANT l'obtention du certificat SSL.
+# install.sh la remplace par default.conf une fois le certificat obtenu.
+
+server {
+    listen 80 default_server;
+    server_name _;
+    return 444;
+}
+
+server {
+    listen 80;
+    server_name DOMAIN_PLACEHOLDER;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}

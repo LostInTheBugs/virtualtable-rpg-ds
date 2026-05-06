@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VirtualTable RPG — Réglages de campagne</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script defer src="/script.js" data-website-id="f30f0aac-dc25-407f-8f70-cc389c9df496"></script>
+<style>
+:root{--bg:#0e0e14;--surface:#16161f;--surface2:#1e1e2a;--surface3:#242430;--border:#2a2a3a;--accent:#c9a227;--accent2:#8b5cf6;--text:#e8e0d0;--text2:#9990a8;--danger:#ef4444;--success:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+.logo{font-family:'Cinzel',serif;color:var(--accent);font-size:1rem;text-decoration:none;}
+.header-title{font-family:'Cinzel',serif;font-size:.95rem;color:var(--text2);}
+.spacer{flex:1;}
+.btn-back{background:none;border:1px solid var(--border);color:var(--text2);padding:.35rem .8rem;border-radius:7px;cursor:pointer;font-size:.82rem;text-decoration:none;transition:.2s;}
+.btn-back:hover{border-color:var(--accent);color:var(--accent);}
+
+.page{max-width:740px;margin:0 auto;padding:2rem 1.5rem;}
+
+.section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;}
+.section-title{font-family:'Cinzel',serif;color:var(--accent);font-size:.9rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:.5rem;}
+
+.form-grid{display:grid;gap:.9rem;}
+.fg{display:flex;flex-direction:column;gap:.35rem;}
+.fg label{font-size:.78rem;color:var(--text2);font-weight:500;}
+.fg input,.fg textarea,.fg select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.55rem .75rem;border-radius:8px;font-size:.875rem;font-family:'Inter',sans-serif;outline:none;transition:.15s;width:100%;}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--accent2);}
+.fg textarea{resize:vertical;min-height:80px;}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+
+/* Invite code */
+.invite-row{display:flex;gap:.5rem;align-items:center;}
+.invite-row input{flex:1;font-family:monospace;font-size:1rem;letter-spacing:.1em;font-weight:600;color:var(--accent);}
+.btn-sm{padding:.38rem .8rem;border:1px solid var(--border);background:none;color:var(--text2);border-radius:7px;cursor:pointer;font-size:.78rem;transition:.2s;white-space:nowrap;}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm.danger:hover{border-color:var(--danger);color:var(--danger);}
+
+/* Radio pills */
+.radio-group{display:flex;gap:.4rem;flex-wrap:wrap;}
+.radio-pill input{display:none;}
+.radio-pill label{display:inline-block;padding:.35rem .75rem;border:1px solid var(--border);border-radius:20px;font-size:.8rem;cursor:pointer;transition:.15s;color:var(--text2);}
+.radio-pill input:checked + label{border-color:var(--accent);background:rgba(201,162,39,.12);color:var(--accent);}
+.radio-pill label:hover{border-color:var(--text2);color:var(--text);}
+
+/* Thresholds */
+.threshold-row{display:flex;align-items:center;gap:.6rem;margin-top:.5rem;}
+.threshold-item{display:flex;align-items:center;gap:.4rem;font-size:.82rem;color:var(--text2);}
+.threshold-item input{width:56px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.35rem .4rem;border-radius:7px;font-size:.85rem;text-align:center;outline:none;}
+.threshold-item input:focus{border-color:var(--accent2);}
+.bar-preview{display:flex;gap:.3rem;align-items:center;margin-top:.7rem;}
+.bar-seg{height:10px;border-radius:3px;flex:1;transition:.3s;}
+
+/* Save button */
+.btn-save{background:linear-gradient(135deg,var(--accent),#a07c18);color:#0e0e14;border:none;border-radius:8px;padding:.65rem 1.6rem;font-size:.9rem;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:.5rem;}
+.btn-save:hover{filter:brightness(1.1);}
+.btn-save:disabled{opacity:.5;cursor:not-allowed;}
+.save-row{display:flex;align-items:center;gap:1rem;margin-top:.5rem;}
+.save-status{font-size:.82rem;color:var(--success);opacity:0;transition:.3s;}
+.save-status.visible{opacity:1;}
+.save-status.error{color:var(--danger);}
+
+.hint{font-size:.73rem;color:var(--text2);margin-top:.25rem;}
+
+/* Members list */
+.members-grid{display:flex;flex-direction:column;gap:.5rem;}
+.member-row{display:flex;align-items:center;gap:.65rem;padding:.55rem .7rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;}
+.member-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#0e0e14;flex-shrink:0;}
+.member-name{flex:1;font-size:.85rem;}
+.member-role{font-size:.72rem;padding:.15rem .5rem;border-radius:20px;}
+.role-gm{background:rgba(201,162,39,.15);color:var(--accent);}
+.role-player{background:rgba(139,92,246,.15);color:var(--accent2);}
+
+/* Danger zone */
+.danger-section{border-color:rgba(239,68,68,.25);}
+.danger-section .section-title{color:var(--danger);}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/lobby.html">⚔ VirtualTable</a>
+  <span class="header-title" id="headerTitle">Réglages de campagne</span>
+  <div class="spacer"></div>
+  <a class="btn-back" href="/lobby.html">← Lobby</a>
+</header>
+
+<main class="page" id="pageContent">
+  <div style="text-align:center;padding:3rem;color:var(--text2);">Chargement…</div>
+</main>
+
+<script>
+// ── Auth ──────────────────────────────────────────────────────
+const TOKEN_KEY = 'rpg_token';
+const USER_KEY  = 'rpg_user';
+function getToken() { return localStorage.getItem(TOKEN_KEY); }
+function getUser()  { try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; } }
+
+const params = new URLSearchParams(location.search);
+const CAMPAIGN_ID = params.get('campaign');
+
+if (!getToken() || !CAMPAIGN_ID) { location.href = '/lobby.html'; }
+
+// ── API ───────────────────────────────────────────────────────
+const API_BASE = '/rpg/api';
+async function apiFetch(path, opts = {}) {
+  const r = await fetch(API_BASE + path, {
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken(), ...(opts.headers||{}) },
+    ...opts,
+  });
+  if (r.status === 401) { location.href = '/login.html'; throw new Error('Unauthorized'); }
+  return r.json();
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function userColor(u) {
+  const hues=[210,160,280,30,340,0,120,50,240,195];
+  let h=0; for(const c of String(u)) h=(h*31+c.charCodeAt(0))&0xffff;
+  return `hsl(${hues[h%hues.length]},65%,55%)`;
+}
+
+// ── State ─────────────────────────────────────────────────────
+let campaign = null;
+
+// ── Load ──────────────────────────────────────────────────────
+(async () => {
+  campaign = await apiFetch(`/campaigns/${CAMPAIGN_ID}`);
+  if (campaign.role !== 'gm') {
+    document.getElementById('pageContent').innerHTML =
+      '<div style="text-align:center;padding:3rem;color:var(--danger);">⛔ Accès réservé au MJ</div>';
+    return;
+  }
+  document.getElementById('headerTitle').textContent = campaign.name + ' — Réglages';
+  render();
+})();
+
+function render() {
+  const s = campaign.settings || {};
+  const hp = s.hp_display || { pc_mode:'bar', npc_mode:'none', threshold_high:70, threshold_low:30 };
+  const vm = s.vision_mode || 'all';
+
+  document.getElementById('pageContent').innerHTML = `
+  <!-- Informations générales -->
+  <div class="section">
+    <div class="section-title">📋 Informations générales</div>
+    <div class="form-grid">
+      <div class="fg">
+        <label>Nom de la campagne</label>
+        <input type="text" id="inp-name" value="${esc(campaign.name)}" maxlength="255" placeholder="Ma campagne…"/>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>Système de jeu</label>
+          <input type="text" id="inp-system" value="${esc(campaign.system||'D&D 5e')}" maxlength="100" list="system-list"/>
+          <datalist id="system-list">
+            <option value="D&amp;D 5e"/><option value="Pathfinder 2e"/>
+            <option value="Call of Cthulhu"/><option value="Starfinder"/>
+            <option value="Warhammer Fantasy"/><option value="Vampire: The Masquerade"/>
+            <option value="Cyberpunk Red"/><option value="Savage Worlds"/>
+          </datalist>
+        </div>
+        <div class="fg">
+          <label>Code d'invitation</label>
+          <div class="invite-row">
+            <input type="text" id="inp-invite" value="${esc(campaign.invite_code||'')}" readonly style="cursor:default;"/>
+            <button class="btn-sm" onclick="copyInvite()" title="Copier">📋</button>
+            <button class="btn-sm danger" onclick="regenInvite()" title="Régénérer">🔄</button>
+          </div>
+          <div class="hint">Partagez ce code pour inviter des joueurs</div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Description</label>
+        <textarea id="inp-desc" placeholder="Résumé de la campagne…">${esc(campaign.description||'')}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vision -->
+  <div class="section">
+    <div class="section-title">👁 Mode de vision par défaut</div>
+    <div class="hint" style="margin-bottom:.9rem;">Détermine ce que les joueurs voient sur la carte au démarrage de la session.</div>
+    <div class="radio-group">
+      <div class="radio-pill">
+        <input type="radio" name="vision" id="vm-all" value="all" ${vm==='all'?'checked':''}>
+        <label for="vm-all">👁 Tout visible</label>
+      </div>
+      <div class="radio-pill">
+        <input type="radio" name="vision" id="vm-character" value="character" ${vm==='character'?'checked':''}>
+        <label for="vm-character">🧝 Vision personnage</label>
+      </div>
+      <div class="radio-pill">
+        <input type="radio" name="vision" id="vm-none" value="none" ${vm==='none'?'checked':''}>
+        <label for="vm-none">🌑 Rien visible</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- HP Display -->
+  <div class="section">
+    <div class="section-title">❤ Affichage des points de vie</div>
+    <div class="form-grid">
+      <div class="fg">
+        <label>Personnages joueurs (PJ)</label>
+        <div class="radio-group">
+          <div class="radio-pill"><input type="radio" name="hp-pc" id="hp-pc-none" value="none" ${hp.pc_mode==='none'?'checked':''}><label for="hp-pc-none">🚫 Masqué</label></div>
+          <div class="radio-pill"><input type="radio" name="hp-pc" id="hp-pc-bar" value="bar" ${hp.pc_mode==='bar'?'checked':''}><label for="hp-pc-bar">▮▮▯ Barre couleur</label></div>
+          <div class="radio-pill"><input type="radio" name="hp-pc" id="hp-pc-exact" value="exact" ${hp.pc_mode==='exact'?'checked':''}><label for="hp-pc-exact">🔢 Nombre exact</label></div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Ennemis / PNJ</label>
+        <div class="radio-group">
+          <div class="radio-pill"><input type="radio" name="hp-npc" id="hp-npc-none" value="none" ${hp.npc_mode==='none'?'checked':''}><label for="hp-npc-none">🚫 Masqué</label></div>
+          <div class="radio-pill"><input type="radio" name="hp-npc" id="hp-npc-bar" value="bar" ${hp.npc_mode==='bar'?'checked':''}><label for="hp-npc-bar">▮▮▯ Barre couleur</label></div>
+          <div class="radio-pill"><input type="radio" name="hp-npc" id="hp-npc-exact" value="exact" ${hp.npc_mode==='exact'?'checked':''}><label for="hp-npc-exact">🔢 Nombre exact</label></div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Seuils de couleur</label>
+        <div class="threshold-row">
+          <div class="threshold-item">🟢 Vert ≥ <input type="number" id="thr-high" value="${hp.threshold_high}" min="1" max="99" oninput="updateBarPreview()"/> %</div>
+          <div class="threshold-item">🔴 Rouge ≤ <input type="number" id="thr-low" value="${hp.threshold_low}" min="1" max="99" oninput="updateBarPreview()"/> %</div>
+        </div>
+        <div class="bar-preview">
+          <span style="font-size:.72rem;color:var(--text2);white-space:nowrap;">Aperçu :</span>
+          <div class="bar-seg" id="bar-green" style="background:#4ade80;"></div>
+          <div class="bar-seg" id="bar-orange" style="background:#fb923c;"></div>
+          <div class="bar-seg" id="bar-red" style="background:#ef4444;"></div>
+        </div>
+        <div class="hint" id="bar-hint">Au dessus de ${hp.threshold_high}% = vert · Entre ${hp.threshold_low}% et ${hp.threshold_high}% = orange · En dessous de ${hp.threshold_low}% = rouge</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Membres -->
+  <div class="section">
+    <div class="section-title">👥 Membres de la campagne</div>
+    <div class="members-grid">
+      ${(campaign.members||[]).map(m => `
+        <div class="member-row">
+          <div class="member-avatar" style="background:${userColor(m.username)}">${m.username[0].toUpperCase()}</div>
+          <span class="member-name">${esc(m.username)}</span>
+          <span class="member-role ${m.role==='gm'?'role-gm':'role-player'}">${m.role==='gm'?'👑 MJ':'⚔ Joueur'}</span>
+        </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- Sauvegarde -->
+  <div class="save-row">
+    <button class="btn-save" id="btnSave" onclick="saveSettings()">💾 Enregistrer les réglages</button>
+    <span class="save-status" id="saveStatus"></span>
+  </div>
+  `;
+  updateBarPreview();
+}
+
+function updateBarPreview() {
+  const high = parseInt(document.getElementById('thr-high')?.value) || 70;
+  const low  = parseInt(document.getElementById('thr-low')?.value)  || 30;
+  const hint = document.getElementById('bar-hint');
+  if (hint) hint.textContent = `Au dessus de ${high}% = vert · Entre ${low}% et ${high}% = orange · En dessous de ${low}% = rouge`;
+  // Ajuster les largeurs de l'aperçu
+  const green  = document.getElementById('bar-green');
+  const orange = document.getElementById('bar-orange');
+  const red    = document.getElementById('bar-red');
+  if (green && orange && red) {
+    const gPct = 100 - high;
+    const oPct = high - low;
+    const rPct = low;
+    green.style.flex  = gPct  + ' 1 0';
+    orange.style.flex = oPct  + ' 1 0';
+    red.style.flex    = rPct  + ' 1 0';
+  }
+}
+
+function copyInvite() {
+  const val = document.getElementById('inp-invite')?.value;
+  if (!val) return;
+  navigator.clipboard.writeText(val).then(() => showStatus('Code copié !', false));
+}
+
+async function regenInvite() {
+  if (!confirm('Régénérer le code d\'invitation ? L\'ancien ne fonctionnera plus.')) return;
+  try {
+    const r = await apiFetch(`/campaigns/${CAMPAIGN_ID}`, {
+      method: 'PUT',
+      body: JSON.stringify({ regenerate_invite: true }),
+    });
+    campaign.invite_code = r.invite_code;
+    document.getElementById('inp-invite').value = r.invite_code;
+    showStatus('Nouveau code généré !', false);
+  } catch (e) {
+    showStatus('Erreur lors de la régénération', true);
+  }
+}
+
+async function saveSettings() {
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true;
+
+  const visionMode = document.querySelector('input[name="vision"]:checked')?.value || 'all';
+  const pcMode     = document.querySelector('input[name="hp-pc"]:checked')?.value  || 'bar';
+  const npcMode    = document.querySelector('input[name="hp-npc"]:checked')?.value || 'none';
+  const thrHigh    = parseInt(document.getElementById('thr-high')?.value)  || 70;
+  const thrLow     = parseInt(document.getElementById('thr-low')?.value)   || 30;
+
+  const payload = {
+    name:        document.getElementById('inp-name')?.value?.trim()   || campaign.name,
+    system:      document.getElementById('inp-system')?.value?.trim() || campaign.system,
+    description: document.getElementById('inp-desc')?.value || '',
+    settings: {
+      vision_mode: visionMode,
+      hp_display: { pc_mode: pcMode, npc_mode: npcMode, threshold_high: thrHigh, threshold_low: thrLow },
+    },
+  };
+
+  try {
+    const r = await apiFetch(`/campaigns/${CAMPAIGN_ID}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+    campaign = { ...campaign, ...r };
+    showStatus('✓ Réglages enregistrés', false);
+  } catch (e) {
+    showStatus('Erreur lors de la sauvegarde', true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function showStatus(msg, isError) {
+  const el = document.getElementById('saveStatus');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'save-status visible' + (isError ? ' error' : '');
+  setTimeout(() => { el.className = 'save-status'; }, 3000);
+}
+</script>
+</body>
+</html>

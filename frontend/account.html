@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VirtualTable RPG — Mon Compte</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script defer src="/script.js" data-website-id="f30f0aac-dc25-407f-8f70-cc389c9df496"></script>
+<style>
+:root{--bg:#0e0e14;--surface:#16161f;--surface2:#1e1e2a;--surface3:#242430;--border:#2a2a3a;--accent:#c9a227;--accent2:#8b5cf6;--text:#e8e0d0;--text2:#9990a8;--danger:#ef4444;--success:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:.8rem 1.5rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:30;}
+.logo-sm{font-family:'Cinzel',serif;color:var(--accent);font-size:1.05rem;text-decoration:none;}
+.spacer{flex:1;}
+.user-badge{display:flex;align-items:center;gap:.6rem;font-size:.875rem;color:var(--text2);}
+.avatar-wrap{position:relative;cursor:pointer;}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#0e0e14;overflow:hidden;flex-shrink:0;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+
+/* Dropdown menu */
+.user-dropdown{position:relative;}
+.dropdown-trigger{display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.3rem .5rem;border-radius:8px;transition:.15s;user-select:none;}
+.dropdown-trigger:hover{background:var(--surface2);}
+.dropdown-trigger .chevron{font-size:.65rem;color:var(--text2);transition:.2s;}
+.dropdown-menu{position:absolute;right:0;top:calc(100% + .4rem);background:var(--surface);border:1px solid var(--border);border-radius:10px;min-width:180px;box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:50;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-6px);transition:.15s;}
+.dropdown-menu.open{opacity:1;pointer-events:all;transform:translateY(0);}
+.dropdown-item{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;font-size:.85rem;color:var(--text);text-decoration:none;transition:.15s;cursor:pointer;border:none;background:none;width:100%;text-align:left;}
+.dropdown-item:hover{background:var(--surface2);}
+.dropdown-item.danger{color:var(--danger);}
+.dropdown-item.danger:hover{background:rgba(239,68,68,.08);}
+.dropdown-sep{height:1px;background:var(--border);margin:.2rem 0;}
+
+/* Layout principal */
+.page-wrap{max-width:740px;margin:2.5rem auto;padding:0 1.5rem 4rem;}
+.page-title{font-family:'Cinzel',serif;font-size:1.5rem;color:var(--accent);margin-bottom:.4rem;}
+.page-sub{font-size:.85rem;color:var(--text2);margin-bottom:2rem;}
+
+/* Onglets */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:2rem;}
+.tab{padding:.6rem 1.1rem;font-size:.88rem;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;transition:.15s;white-space:nowrap;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* Sections */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;}
+.section-title{font-family:'Cinzel',serif;font-size:.95rem;color:var(--accent);margin-bottom:1.2rem;display:flex;align-items:center;gap:.5rem;}
+
+/* Formulaires */
+.form-group{margin-bottom:1rem;}
+label{display:block;font-size:.75rem;color:var(--text2);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.05em;}
+input,select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem .9rem;border-radius:8px;font-size:.9rem;outline:none;transition:.15s;font-family:inherit;}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(201,162,39,.1);}
+input:disabled{opacity:.5;cursor:not-allowed;}
+
+.btn{padding:.6rem 1.2rem;border:none;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:500;transition:.2s;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#a07c18);color:#0e0e14;}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;filter:none;}
+.btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text);}
+.btn-secondary:hover{border-color:var(--accent2);color:var(--accent2);}
+.btn-danger{background:none;border:1px solid var(--danger);color:var(--danger);}
+.btn-danger:hover{background:rgba(239,68,68,.1);}
+.btn-danger:disabled{opacity:.4;cursor:not-allowed;}
+
+.alert{padding:.65rem 1rem;border-radius:8px;font-size:.85rem;margin-bottom:1rem;display:none;}
+.alert.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
+.alert.success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#86efac;}
+
+/* Avatar upload */
+.avatar-section{display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;}
+.avatar-preview{width:72px;height:72px;border-radius:50%;border:2px solid var(--border);background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:#0e0e14;overflow:hidden;flex-shrink:0;}
+.avatar-preview img{width:100%;height:100%;object-fit:cover;}
+.avatar-upload-group{flex:1;}
+.upload-row{display:flex;gap:.5rem;align-items:center;}
+.upload-row input{flex:1;}
+.upload-file-btn{display:inline-flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:.5rem .7rem;cursor:pointer;font-size:.9rem;transition:.15s;line-height:1;white-space:nowrap;}
+.upload-file-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+
+/* Code d'invitation */
+.invite-display{display:flex;align-items:center;gap:1rem;padding:1.2rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:1rem;}
+.invite-code{font-family:monospace;font-size:2rem;font-weight:700;color:var(--accent);letter-spacing:.2em;flex:1;}
+.copy-btn{display:flex;align-items:center;gap:.4rem;padding:.5rem .9rem;background:var(--surface3);border:1px solid var(--border);color:var(--text2);border-radius:8px;cursor:pointer;font-size:.82rem;transition:.15s;}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Danger zone */
+.danger-zone{border-color:rgba(239,68,68,.3);}
+.danger-zone .section-title{color:var(--danger);}
+.danger-desc{font-size:.85rem;color:var(--text2);margin-bottom:1.2rem;line-height:1.6;}
+
+/* Confirmation suppression */
+.delete-steps{display:flex;flex-direction:column;gap:1rem;}
+.step{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;}
+.step-title{font-size:.85rem;font-weight:500;margin-bottom:.7rem;display:flex;align-items:center;gap:.5rem;}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#0e0e14;font-size:.72rem;font-weight:700;flex-shrink:0;}
+
+/* Radio-like option buttons */
+.opt-row{display:flex;gap:.6rem;margin-bottom:.5rem;}
+.opt-btn{flex:1;padding:.5rem .7rem;background:var(--surface3);border:2px solid var(--border);color:var(--text2);border-radius:8px;cursor:pointer;font-size:.82rem;text-align:center;transition:.15s;}
+.opt-btn.active{border-color:var(--accent2);color:var(--text);background:rgba(139,92,246,.1);}
+.opt-btn.danger-opt.active{border-color:var(--danger);color:var(--danger);background:rgba(239,68,68,.08);}
+
+/* Campaign action cards */
+.camp-action-card{background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:.9rem;margin-bottom:.6rem;}
+.camp-action-name{font-size:.88rem;font-weight:500;margin-bottom:.6rem;}
+.camp-action-opts{display:flex;gap:.5rem;margin-bottom:.5rem;}
+.camp-action-opt{flex:1;padding:.4rem .6rem;background:var(--surface2);border:2px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.78rem;text-align:center;transition:.15s;}
+.camp-action-opt.active{border-color:var(--accent2);color:var(--text);}
+.camp-action-opt.del-opt.active{border-color:var(--danger);color:var(--danger);}
+.transfer-select{display:none;margin-top:.4rem;}
+.transfer-select.visible{display:block;}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo-sm" href="/lobby.html">⚔ VirtualTable RPG</a>
+  <div class="spacer"></div>
+  <div class="user-badge">
+    <div class="user-dropdown" id="userDropdown">
+      <div class="dropdown-trigger" onclick="toggleDropdown()">
+        <div class="avatar" id="userAvatar">?</div>
+        <span id="userName">…</span>
+        <span class="chevron" id="chevronIcon">▼</span>
+      </div>
+      <div class="dropdown-menu" id="dropdownMenu">
+        <a class="dropdown-item" href="/account.html">👤 Mon compte</a>
+        <div class="dropdown-sep"></div>
+        <button class="dropdown-item danger" onclick="logout()">🚪 Déconnexion</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <h1 class="page-title">Mon Compte</h1>
+  <p class="page-sub" id="accountSub">Gérez vos informations personnelles et préférences.</p>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('profile')">👤 Profil</div>
+    <div class="tab" onclick="switchTab('security')">🔒 Sécurité</div>
+    <div class="tab" onclick="switchTab('invite')">🎟 Invitation</div>
+    <div class="tab" onclick="switchTab('danger')">⚠️ Danger</div>
+  </div>
+
+  <!-- ══════ Onglet Profil ══════ -->
+  <div class="tab-panel active" id="tab-profile">
+    <div class="section">
+      <div class="section-title">🖼️ Photo de profil</div>
+      <div class="avatar-section">
+        <div class="avatar-preview" id="avatarPreview">?</div>
+        <div class="avatar-upload-group">
+          <label>URL de l'image ou importer un fichier</label>
+          <div class="upload-row">
+            <input type="url" id="avatarUrl" placeholder="https://…" oninput="previewAvatar(this.value)"/>
+            <label class="upload-file-btn" id="uploadAvatarBtn" title="Importer un fichier">
+              📎
+              <input type="file" id="avatarFile" accept="image/*" style="display:none" onchange="uploadAvatarFile(this)"/>
+            </label>
+          </div>
+          <div style="font-size:.73rem;color:var(--text2);margin-top:.3rem;">Formats acceptés : JPG, PNG, GIF, WebP — max 5 Mo</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary" onclick="saveAvatar()" id="btnSaveAvatar">Mettre à jour la photo</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">✏️ Informations</div>
+      <div id="profile-alert" class="alert"></div>
+      <div class="form-group">
+        <label>Nom d'aventurier</label>
+        <input type="text" id="profUsername" placeholder="Aragorn42" minlength="3" maxlength="50"/>
+      </div>
+      <div class="form-group">
+        <label>Adresse email</label>
+        <input type="email" id="profEmail" placeholder="votre@email.com"/>
+      </div>
+      <button class="btn btn-primary" onclick="saveProfile()" id="btnSaveProfile">Enregistrer les modifications</button>
+    </div>
+  </div>
+
+  <!-- ══════ Onglet Sécurité ══════ -->
+  <div class="tab-panel" id="tab-security">
+    <div class="section">
+      <div class="section-title">🔑 Changer le mot de passe</div>
+      <div id="pw-alert" class="alert"></div>
+      <div class="form-group">
+        <label>Mot de passe actuel</label>
+        <input type="password" id="pwCurrent" placeholder="••••••••"/>
+      </div>
+      <div class="form-group">
+        <label>Nouveau mot de passe</label>
+        <input type="password" id="pwNew" placeholder="Min. 8 caractères" minlength="8"/>
+      </div>
+      <div class="form-group">
+        <label>Confirmer le nouveau mot de passe</label>
+        <input type="password" id="pwConfirm" placeholder="••••••••"/>
+      </div>
+      <button class="btn btn-primary" onclick="changePassword()" id="btnChangePw">Changer le mot de passe</button>
+    </div>
+  </div>
+
+  <!-- ══════ Onglet Invitation ══════ -->
+  <div class="tab-panel" id="tab-invite">
+    <div class="section">
+      <div class="section-title">🎟 Mon code d'invitation</div>
+      <p style="font-size:.85rem;color:var(--text2);margin-bottom:1.2rem;line-height:1.6;">
+        Partagez ce code unique avec vos amis pour leur permettre de créer un compte.
+        Ce code est permanent et personnel — ne le partagez qu'avec des personnes de confiance.
+      </p>
+      <div class="invite-display">
+        <span class="invite-code" id="inviteCodeDisplay">—</span>
+        <button class="copy-btn" id="btnCopyCode" onclick="copyInviteCode()">
+          <span>📋</span> Copier
+        </button>
+      </div>
+      <p style="font-size:.78rem;color:var(--text2);">
+        Membre depuis le <span id="memberSince">…</span> · Dernière connexion : <span id="lastLogin">…</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════ Onglet Danger ══════ -->
+  <div class="tab-panel" id="tab-danger">
+    <div class="section danger-zone">
+      <div class="section-title">⚠️ Zone de danger</div>
+      <p class="danger-desc">
+        La suppression de votre compte est <strong>irréversible</strong>. Toutes vos données seront définitivement effacées,
+        sauf si vous choisissez de conserver vos personnages.
+      </p>
+
+      <button class="btn btn-danger" onclick="startDeleteFlow()" id="btnStartDelete">
+        Supprimer mon compte
+      </button>
+
+      <!-- Formulaire de suppression (caché par défaut) -->
+      <div id="deleteFlow" style="display:none;margin-top:1.5rem;">
+        <div id="delete-alert" class="alert"></div>
+        <div class="delete-steps">
+
+          <!-- Étape 1 : personnages -->
+          <div class="step">
+            <div class="step-title"><span class="step-num">1</span> Que faire de vos personnages ?</div>
+            <div class="opt-row">
+              <div class="opt-btn active" id="optKeepChars" onclick="setCharOpt('keep')">
+                ✅ Conserver (détaché de votre compte)
+              </div>
+              <div class="opt-btn danger-opt" id="optDelChars" onclick="setCharOpt('delete')">
+                🗑️ Supprimer définitivement
+              </div>
+            </div>
+            <p id="charOptHint" style="font-size:.76rem;color:var(--text2);margin-top:.4rem;">
+              Les personnages seront conservés dans les campagnes mais ne seront plus associés à votre compte.
+            </p>
+          </div>
+
+          <!-- Étape 2 : campagnes dont on est MJ -->
+          <div class="step" id="stepCampaigns" style="display:none;">
+            <div class="step-title"><span class="step-num">2</span> Vous êtes Maître du Jeu de ces campagnes</div>
+            <p style="font-size:.8rem;color:var(--text2);margin-bottom:.9rem;">
+              Chaque campagne doit être transférée à un autre joueur ou supprimée.
+            </p>
+            <div id="campActionsList"></div>
+          </div>
+
+          <!-- Étape finale : confirmation par mot de passe -->
+          <div class="step">
+            <div class="step-title"><span class="step-num" id="confirmStepNum">2</span> Confirmer avec votre mot de passe</div>
+            <div class="form-group" style="margin-bottom:.6rem;">
+              <label>Mot de passe actuel</label>
+              <input type="password" id="deleteConfirmPw" placeholder="••••••••"/>
+            </div>
+            <button class="btn btn-danger" onclick="confirmDelete()" id="btnConfirmDelete">
+              Supprimer définitivement mon compte
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/js/api.js?v=2"></script>
+<script>
+// ── Auth guard + init ─────────────────────────────────────────
+let currentUser = null;
+let ownedCampaigns = [];
+let charDeleteOpt = 'keep'; // 'keep' ou 'delete'
+const campaignChoices = {}; // { [campId]: { action: 'transfer'|'delete', transfer_to: uid } }
+
+(async () => {
+  const token = getToken();
+  if (!token) { window.location.href = '/'; return; }
+  try {
+    // Utilise /auth/me pour le guard (compatible avec toutes les versions du cache)
+    const user = await API.auth.me();
+    currentUser = user;
+    setUser(user);
+    initUI(user);
+  } catch (err) {
+    // Ne vider le token que sur un vrai 401, pas sur une erreur réseau
+    if (err.message && (err.message.includes('401') || err.message.includes('Token'))) {
+      clearToken();
+    }
+    window.location.href = '/';
+  }
+})();
+
+function initUI(user) {
+  // Header
+  const av = document.getElementById('userAvatar');
+  if (user.avatar_url) {
+    av.innerHTML = `<img src="${user.avatar_url}" alt="${user.username}"/>`;
+  } else {
+    av.textContent = user.username[0].toUpperCase();
+  }
+  document.getElementById('userName').textContent = user.username;
+  document.getElementById('accountSub').textContent = `Connecté en tant que ${user.username} · ${user.email}`;
+
+  // Profil
+  document.getElementById('profUsername').value = user.username;
+  document.getElementById('profEmail').value = user.email;
+  if (user.avatar_url) {
+    document.getElementById('avatarUrl').value = user.avatar_url;
+    previewAvatar(user.avatar_url);
+  } else {
+    document.getElementById('avatarPreview').textContent = user.username[0].toUpperCase();
+  }
+
+  // Invitation
+  document.getElementById('inviteCodeDisplay').textContent = user.invite_code || '—';
+  if (user.created_at) {
+    document.getElementById('memberSince').textContent = new Date(user.created_at).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+  }
+  if (user.last_login) {
+    document.getElementById('lastLogin').textContent = new Date(user.last_login).toLocaleString('fr-FR', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  } else {
+    document.getElementById('lastLogin').textContent = 'Jamais';
+  }
+}
+
+// ── Header dropdown ───────────────────────────────────────────
+function toggleDropdown() {
+  const menu = document.getElementById('dropdownMenu');
+  const chevron = document.getElementById('chevronIcon');
+  menu.classList.toggle('open');
+  chevron.style.transform = menu.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+document.addEventListener('click', e => {
+  const dd = document.getElementById('userDropdown');
+  if (!dd.contains(e.target)) {
+    document.getElementById('dropdownMenu').classList.remove('open');
+    document.getElementById('chevronIcon').style.transform = '';
+  }
+});
+function logout() { clearToken(); window.location.href = '/'; }
+
+// ── Onglets ───────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['profile','security','invite','danger'][i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach((p, i) => {
+    p.classList.toggle('active', ['tab-profile','tab-security','tab-invite','tab-danger'][i] === 'tab-'+name);
+  });
+}
+
+// ── Avatar ────────────────────────────────────────────────────
+function previewAvatar(url) {
+  const prev = document.getElementById('avatarPreview');
+  if (url) {
+    prev.innerHTML = `<img src="${url}" alt="avatar" onerror="this.parentElement.innerHTML='${currentUser ? currentUser.username[0].toUpperCase() : '?'}'"/>`;
+  } else {
+    prev.textContent = currentUser ? currentUser.username[0].toUpperCase() : '?';
+  }
+}
+
+async function uploadAvatarFile(input) {
+  if (!input.files[0]) return;
+  const btn = document.getElementById('uploadAvatarBtn');
+  btn.style.opacity = '.5';
+  try {
+    const res = await API.upload(input.files[0]);
+    document.getElementById('avatarUrl').value = res.url;
+    previewAvatar(res.url);
+  } catch (err) {
+    showAlert('profile-alert', err.message);
+  } finally {
+    btn.style.opacity = '';
+  }
+}
+
+async function saveAvatar() {
+  const url = document.getElementById('avatarUrl').value.trim();
+  const btn = document.getElementById('btnSaveAvatar');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  try {
+    const updated = await API.account.updateProfile({ avatar_url: url || null });
+    currentUser = { ...currentUser, ...updated };
+    setUser(currentUser);
+    // Mettre à jour le header
+    const av = document.getElementById('userAvatar');
+    if (updated.avatar_url) {
+      av.innerHTML = `<img src="${updated.avatar_url}" alt="${updated.username}"/>`;
+    } else {
+      av.textContent = updated.username[0].toUpperCase();
+    }
+    showAlert('profile-alert', 'Photo de profil mise à jour !', 'success');
+  } catch (err) {
+    showAlert('profile-alert', err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Mettre à jour la photo';
+  }
+}
+
+// ── Profil ────────────────────────────────────────────────────
+async function saveProfile() {
+  const btn = document.getElementById('btnSaveProfile');
+  const username = document.getElementById('profUsername').value.trim();
+  const email = document.getElementById('profEmail').value.trim();
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  try {
+    const updated = await API.account.updateProfile({ username, email });
+    currentUser = { ...currentUser, ...updated };
+    setUser(currentUser);
+    document.getElementById('userName').textContent = updated.username;
+    document.getElementById('accountSub').textContent = `Connecté en tant que ${updated.username} · ${updated.email}`;
+    showAlert('profile-alert', 'Profil mis à jour avec succès !', 'success');
+  } catch (err) {
+    showAlert('profile-alert', err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Enregistrer les modifications';
+  }
+}
+
+// ── Mot de passe ──────────────────────────────────────────────
+async function changePassword() {
+  const current = document.getElementById('pwCurrent').value;
+  const newPw = document.getElementById('pwNew').value;
+  const confirm = document.getElementById('pwConfirm').value;
+  if (newPw !== confirm) { showAlert('pw-alert', 'Les mots de passe ne correspondent pas'); return; }
+  const btn = document.getElementById('btnChangePw');
+  btn.disabled = true; btn.textContent = 'Changement…';
+  try {
+    await API.account.changePassword({ current_password: current, new_password: newPw });
+    document.getElementById('pwCurrent').value = '';
+    document.getElementById('pwNew').value = '';
+    document.getElementById('pwConfirm').value = '';
+    showAlert('pw-alert', 'Mot de passe changé avec succès !', 'success');
+  } catch (err) {
+    showAlert('pw-alert', err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Changer le mot de passe';
+  }
+}
+
+// ── Copier le code d'invitation ───────────────────────────────
+function copyInviteCode() {
+  const code = document.getElementById('inviteCodeDisplay').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('btnCopyCode');
+    btn.innerHTML = '<span>✓</span> Copié !';
+    setTimeout(() => btn.innerHTML = '<span>📋</span> Copier', 2000);
+  });
+}
+
+// ── Suppression de compte ─────────────────────────────────────
+async function startDeleteFlow() {
+  const flow = document.getElementById('deleteFlow');
+  flow.style.display = 'block';
+  document.getElementById('btnStartDelete').style.display = 'none';
+
+  // Charger les campagnes dont on est MJ
+  try {
+    ownedCampaigns = await API.account.ownedCampaigns();
+  } catch { ownedCampaigns = []; }
+
+  const stepCamp = document.getElementById('stepCampaigns');
+  const confirmNum = document.getElementById('confirmStepNum');
+
+  if (ownedCampaigns.length > 0) {
+    stepCamp.style.display = 'block';
+    confirmNum.textContent = '3';
+    renderCampaignActions();
+  } else {
+    stepCamp.style.display = 'none';
+    confirmNum.textContent = '2';
+  }
+}
+
+function renderCampaignActions() {
+  const container = document.getElementById('campActionsList');
+  container.innerHTML = '';
+  for (const camp of ownedCampaigns) {
+    if (!campaignChoices[camp.id]) {
+      campaignChoices[camp.id] = { action: 'transfer', transfer_to: camp.members[0]?.id || null };
+    }
+    const choice = campaignChoices[camp.id];
+    const memberOptions = camp.members.map(m =>
+      `<option value="${m.id}" ${choice.transfer_to === m.id ? 'selected' : ''}>${m.username}</option>`
+    ).join('');
+    const hasMembers = camp.members.length > 0;
+
+    const card = document.createElement('div');
+    card.className = 'camp-action-card';
+    card.innerHTML = `
+      <div class="camp-action-name">🗺️ ${escHtml(camp.name)}</div>
+      <div class="camp-action-opts">
+        <div class="camp-action-opt ${choice.action==='transfer' ? 'active' : ''}"
+             onclick="setCampAction('${camp.id}','transfer')" id="opt-t-${camp.id}">
+          🔄 Transférer
+        </div>
+        <div class="camp-action-opt del-opt ${choice.action==='delete' ? 'active' : ''}"
+             onclick="setCampAction('${camp.id}','delete')" id="opt-d-${camp.id}">
+          🗑️ Supprimer
+        </div>
+      </div>
+      <div class="transfer-select ${choice.action==='transfer' ? 'visible' : ''}" id="ts-${camp.id}">
+        ${hasMembers
+          ? `<label>Transférer à</label><select id="sel-${camp.id}" onchange="setTransferTo('${camp.id}',this.value)">${memberOptions}</select>`
+          : `<p style="font-size:.78rem;color:var(--danger);">⚠ Aucun autre membre dans cette campagne — seule la suppression est possible.</p>`
+        }
+      </div>
+    `;
+    container.appendChild(card);
+
+    if (!hasMembers && choice.action === 'transfer') {
+      setCampAction(camp.id, 'delete');
+    }
+  }
+}
+
+function setCampAction(campId, action) {
+  if (!campaignChoices[campId]) campaignChoices[campId] = {};
+  campaignChoices[campId].action = action;
+
+  document.getElementById(`opt-t-${campId}`).classList.toggle('active', action === 'transfer');
+  document.getElementById(`opt-d-${campId}`).classList.toggle('active', action === 'delete');
+  const ts = document.getElementById(`ts-${campId}`);
+  if (ts) ts.classList.toggle('visible', action === 'transfer');
+}
+
+function setTransferTo(campId, userId) {
+  if (!campaignChoices[campId]) campaignChoices[campId] = {};
+  campaignChoices[campId].transfer_to = userId;
+}
+
+function setCharOpt(opt) {
+  charDeleteOpt = opt;
+  document.getElementById('optKeepChars').classList.toggle('active', opt === 'keep');
+  document.getElementById('optDelChars').classList.toggle('active', opt === 'delete');
+  document.getElementById('charOptHint').textContent = opt === 'keep'
+    ? 'Les personnages seront conservés dans les campagnes mais ne seront plus associés à votre compte.'
+    : 'Tous vos personnages seront définitivement supprimés avec votre compte.';
+}
+
+async function confirmDelete() {
+  const pw = document.getElementById('deleteConfirmPw').value;
+  if (!pw) { showAlert('delete-alert', 'Veuillez saisir votre mot de passe.'); return; }
+
+  // Construire campaign_actions
+  const campaign_actions = Object.entries(campaignChoices).map(([campaign_id, c]) => ({
+    campaign_id,
+    action: c.action,
+    transfer_to: c.transfer_to || undefined,
+  }));
+
+  const btn = document.getElementById('btnConfirmDelete');
+  btn.disabled = true; btn.textContent = 'Suppression en cours…';
+
+  try {
+    await API.account.deleteAccount({
+      password: pw,
+      keep_characters: charDeleteOpt === 'keep',
+      campaign_actions,
+    });
+    clearToken();
+    // Redirection avec message
+    window.location.href = '/?deleted=1';
+  } catch (err) {
+    showAlert('delete-alert', err.message);
+    btn.disabled = false; btn.textContent = 'Supprimer définitivement mon compte';
+  }
+}
+
+// ── Utilitaires ───────────────────────────────────────────────
+function showAlert(id, msg, type = 'error') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = `alert ${type}`;
+  el.style.display = 'block';
+  if (type === 'success') setTimeout(() => el.style.display = 'none', 4000);
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

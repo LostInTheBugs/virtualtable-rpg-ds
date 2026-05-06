@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VirtualTable RPG — Fonctionnalités</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script defer src="/script.js" data-website-id="f30f0aac-dc25-407f-8f70-cc389c9df496"></script>
+<style>
+:root{--bg:#0e0e14;--surface:#16161f;--surface2:#1e1e2a;--surface3:#242430;--border:#2a2a3a;--accent:#c9a227;--accent2:#8b5cf6;--text:#e8e0d0;--text2:#9990a8;--danger:#ef4444;--success:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:.8rem 1.5rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:30;}
+.logo-sm{font-family:'Cinzel',serif;color:var(--accent);font-size:1.05rem;text-decoration:none;}
+.spacer{flex:1;}
+.user-dropdown{position:relative;}
+.dropdown-trigger{display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.3rem .5rem;border-radius:8px;transition:.15s;user-select:none;}
+.dropdown-trigger:hover{background:var(--surface2);}
+.dropdown-trigger .chevron{font-size:.6rem;color:var(--text2);transition:.2s;}
+.dropdown-menu{position:absolute;right:0;top:calc(100% + .4rem);background:var(--surface);border:1px solid var(--border);border-radius:10px;min-width:200px;box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:50;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-6px);transition:.15s;}
+.dropdown-menu.open{opacity:1;pointer-events:all;transform:translateY(0);}
+.dropdown-item{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;font-size:.85rem;color:var(--text);text-decoration:none;transition:.15s;cursor:pointer;border:none;background:none;width:100%;text-align:left;}
+.dropdown-item:hover{background:var(--surface2);}
+.dropdown-item.active{color:var(--accent);}
+.dropdown-item.danger{color:var(--danger);}
+.dropdown-item.danger:hover{background:rgba(239,68,68,.08);}
+.dropdown-sep{height:1px;background:var(--border);margin:.2rem 0;}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#0e0e14;overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+
+.page-wrap{max-width:860px;margin:0 auto;padding:2.5rem 1.5rem 5rem;}
+.page-hero{text-align:center;margin-bottom:3rem;}
+.page-hero h1{font-family:'Cinzel',serif;font-size:2rem;color:var(--accent);margin-bottom:.5rem;}
+.page-hero p{font-size:.95rem;color:var(--text2);line-height:1.6;}
+
+.features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;}
+.feat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.4rem 1.5rem;transition:.2s;}
+.feat-card:hover{border-color:var(--border);box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.feat-icon{font-size:1.8rem;margin-bottom:.8rem;display:block;}
+.feat-title{font-family:'Cinzel',serif;font-size:.9rem;color:var(--accent);margin-bottom:.7rem;}
+.feat-list{list-style:none;display:flex;flex-direction:column;gap:.35rem;}
+.feat-list li{font-size:.82rem;color:var(--text2);padding-left:1rem;position:relative;line-height:1.45;}
+.feat-list li::before{content:'·';position:absolute;left:0;color:var(--accent2);}
+.feat-list li strong{color:var(--text);}
+
+.badge-new{display:inline-block;background:rgba(34,197,94,.15);color:var(--success);font-size:.62rem;font-weight:700;padding:.1rem .35rem;border-radius:4px;margin-left:.3rem;vertical-align:middle;letter-spacing:.04em;}
+.badge-beta{display:inline-block;background:rgba(139,92,246,.15);color:var(--accent2);font-size:.62rem;font-weight:700;padding:.1rem .35rem;border-radius:4px;margin-left:.3rem;vertical-align:middle;letter-spacing:.04em;}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo-sm" href="/lobby.html">⚔ VirtualTable RPG</a>
+  <div class="spacer"></div>
+  <div class="user-dropdown" id="userDropdown">
+    <div class="dropdown-trigger" onclick="toggleDropdown()">
+      <div class="avatar" id="userAvatar">?</div>
+      <span id="userName">…</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="dropdown-menu" id="dropdownMenu">
+      <a class="dropdown-item" href="/account.html">👤 Mon compte</a>
+      <a class="dropdown-item active" href="/features.html">✨ Fonctionnalités</a>
+      <a class="dropdown-item" href="/releases.html">📋 Notes de version</a>
+      <div class="dropdown-sep"></div>
+      <a class="dropdown-item" id="adminLink" href="/admin.html" style="display:none">🛡 Administration</a>
+      <div class="dropdown-sep" id="adminSep" style="display:none"></div>
+      <button class="dropdown-item danger" onclick="logout()">🚪 Déconnexion</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <div class="page-hero">
+    <h1>⚔ Fonctionnalités</h1>
+    <p>Tout ce que VirtualTable RPG met à votre disposition pour jouer en ligne.</p>
+  </div>
+
+  <div class="features-grid">
+
+    <div class="feat-card">
+      <span class="feat-icon">🗺</span>
+      <div class="feat-title">Cartes & Monde</div>
+      <ul class="feat-list">
+        <li><strong>Import de cartes</strong> — PNG, JPG, format UVTT universel</li>
+        <li><strong>Grilles</strong> — carrée ou hexagonale avec snap automatique</li>
+        <li><strong>Brouillard de guerre</strong> — persistant entre les sessions</li>
+        <li><strong>Éclairage dynamique</strong> — lumières et ombres en temps réel</li>
+        <li><strong>Line of sight</strong> — calcul de vision depuis les tokens</li>
+        <li><strong>Murs & obstacles</strong> — éditeur de murs dessinable</li>
+        <li><strong>Effets météo</strong> — pluie, neige, brouillard, tempête</li>
+      </ul>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">🧙</span>
+      <div class="feat-title">Personnages & Fiches</div>
+      <ul class="feat-list">
+        <li><strong>Fiche D&D 5e</strong> — stats, compétences, jets de sauvegarde</li>
+        <li><strong>Fiche Pathfinder 2e</strong> — maîtrises, réussites critiques</li>
+        <li><strong>Sorts</strong> — bibliothèque de 300+ sorts, emplacements de sorts</li>
+        <li><strong>Inventaire avec poids</strong> — poids par objet, indicateur d'encombrement D&D 5e</li>
+        <li><strong>Montée de niveau</strong> — demande via la fiche, approbation MJ, calculs automatiques</li>
+        <li><strong>Jets automatisés</strong> — depuis la fiche, en un clic</li>
+        <li><strong>Points de vie</strong> — édition directe sur le token</li>
+        <li><strong>Rayon de vision</strong> — configurable par personnage</li>
+      </ul>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">⚔</span>
+      <div class="feat-title">Combat</div>
+      <ul class="feat-list">
+        <li><strong>Tracker d'initiative</strong> — ordre de combat en temps réel</li>
+        <li><strong>Conditions D&D 5e</strong> — avantage, désavantage, états</li>
+        <li><strong>Dés 3D animés</strong> — rendu physique avec rebonds</li>
+        <li><strong>Macros de jets</strong> — formules personnalisées</li>
+        <li><strong>Automatisation</strong> — attaques, dégâts, soins</li>
+        <li><strong>Mesure de distance</strong> — outil de règle sur la carte</li>
+      </ul>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">✨</span>
+      <div class="feat-title">Sorts & Zones</div>
+      <ul class="feat-list">
+        <li><strong>Zones d'effet</strong> — cercle, cône, ligne, cube</li>
+        <li><strong>Déplacement</strong> — repositionner les zones après placement</li>
+        <li><strong>Sélecteur de sorts</strong> — filtre par niveau, classe, école</li>
+        <li><strong>Descriptions complètes</strong> — 158 sorts avec texte, tooltip et surlancé (upcast)</li>
+        <li><strong>Lancement en partie</strong> — annonce dans le chat avec DD de sauvegarde</li>
+        <li><strong>300+ sorts</strong> — D&D 5e complet (niveaux 0 à 9)</li>
+      </ul>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">🎭</span>
+      <div class="feat-title">Tokens</div>
+      <ul class="feat-list">
+        <li><strong>Tokens personnalisés</strong> — image ou URL</li>
+        <li><strong>Tokens animés</strong> — support WEBM et GIF</li>
+        <li><strong>PNJ libres</strong> — sans fiche personnage liée</li>
+        <li><strong>Bibliothèque D&D 5e</strong> — créatures du Manuel des Monstres</li>
+        <li><strong>Créateur de token</strong> — recadrage, bordure, effet lumineux</li>
+        <li><strong>Pathfinding</strong> — déplacement assisté sur la carte</li>
+      </ul>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">💬</span>
+      <div class="feat-title">Chat & Dés</div>
+      <ul class="feat-list">
+        <li><strong>Chat en temps réel</strong> — tous les joueurs, instantané</li>
+        <li><strong>Messages privés</strong> — <em>/w joueur message</em></li>
+        <li><strong>Jets publics</strong> — visibles par tous avec détail</li>
+        <li><strong>Tables aléatoires</strong> — créer et lancer des tables</li>
+        <li><strong>Journal de campagne</strong> — éditeur Markdown riche</li>
+        <li><strong>Handouts</strong> — partage de notes et images</li>
+      </ul>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">🎵</span>
+      <div class="feat-title">Audio</div>
+      <ul class="feat-list">
+        <li><strong>Playlist musicale</strong> — lecture synchronisée pour tous</li>
+        <li><strong>Ambiances sonores</strong> — sons d'environnement</li>
+        <li><strong>Contrôle MJ</strong> — démarrer, arrêter, choisir la piste</li>
+        <li><strong>Panneau joueur</strong> — volume personnel indépendant</li>
+      </ul>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">📋</span>
+      <div class="feat-title">Campagnes</div>
+      <ul class="feat-list">
+        <li><strong>Création</strong> — campagnes multiples par compte</li>
+        <li><strong>Invitation</strong> — code unique partageable</li>
+        <li><strong>Configuration</strong> — système de jeu, visibilité des PV</li>
+        <li><strong>Ownership</strong> — personnages liés à leur joueur</li>
+        <li><strong>Raccourcis clavier</strong> — navigation rapide en partie</li>
+      </ul>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">🔐</span>
+      <div class="feat-title">Sécurité & Comptes</div>
+      <ul class="feat-list">
+        <li><strong>Inscription</strong> — sur invitation uniquement</li>
+        <li><strong>Rate limiting</strong> — protection anti-brute-force</li>
+        <li><strong>Lockout progressif</strong> — blocage temporaire après échecs</li>
+        <li><strong>Avatar</strong> — personnalisable via URL</li>
+        <li><strong>Mot de passe</strong> — modifiable depuis le compte</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<script src="/js/api.js?v=2"></script>
+<script>
+(async () => {
+  const token = getToken();
+  if (!token) { window.location.href = '/'; return; }
+  try {
+    const user = await API.auth.me();
+    setUser(user);
+    const av = document.getElementById('userAvatar');
+    if (user.avatar_url) av.innerHTML = `<img src="${user.avatar_url}" alt="${user.username}"/>`;
+    else av.textContent = user.username[0].toUpperCase();
+    document.getElementById('userName').textContent = user.username;
+    if (user.is_admin) {
+      document.getElementById('adminLink').style.display = '';
+      document.getElementById('adminSep').style.display = '';
+    }
+  } catch {
+    window.location.href = '/';
+  }
+})();
+
+function toggleDropdown() {
+  const m = document.getElementById('dropdownMenu');
+  m.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!document.getElementById('userDropdown').contains(e.target))
+    document.getElementById('dropdownMenu').classList.remove('open');
+});
+function logout() {
+  clearToken();
+  localStorage.removeItem('rpg_user');
+  window.location.href = '/';
+}
+</script>
+</body>
+</html>

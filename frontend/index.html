@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VirtualTable RPG — Connexion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script defer src="/script.js" data-website-id="f30f0aac-dc25-407f-8f70-cc389c9df496"></script>
+<style>
+  :root{--bg:#0e0e14;--surface:#16161f;--border:#2a2a3a;--accent:#c9a227;--accent2:#8b5cf6;--text:#e8e0d0;--text2:#9990a8;--danger:#ef4444;--success:#22c55e;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+
+  /* Particules de fond */
+  .bg-stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+  .star{position:absolute;border-radius:50%;background:var(--accent);opacity:.15;animation:twinkle var(--d,3s) ease-in-out infinite alternate;}
+  @keyframes twinkle{to{opacity:.5;transform:scale(1.5);}}
+
+  .login-wrap{position:relative;z-index:1;width:100%;max-width:420px;padding:1rem;}
+
+  .logo{text-align:center;margin-bottom:2rem;}
+  .logo h1{font-family:'Cinzel',serif;font-size:2rem;color:var(--accent);text-shadow:0 0 20px rgba(201,162,39,.4);letter-spacing:.05em;}
+  .logo p{color:var(--text2);font-size:.85rem;margin-top:.4rem;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+
+  .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.5rem;}
+  .tab{flex:1;padding:.7rem;text-align:center;cursor:pointer;font-size:.9rem;color:var(--text2);border-bottom:2px solid transparent;transition:.2s;user-select:none;}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  .form-group{margin-bottom:1rem;}
+  label{display:block;font-size:.8rem;color:var(--text2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em;}
+  input{width:100%;background:#1e1e2a;border:1px solid var(--border);color:var(--text);padding:.65rem .9rem;border-radius:8px;font-size:.95rem;transition:.2s;outline:none;}
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(201,162,39,.15);}
+
+  .btn{width:100%;padding:.75rem;border:none;border-radius:8px;cursor:pointer;font-size:.95rem;font-weight:500;transition:.2s;margin-top:.5rem;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#a07c18);color:#0e0e14;}
+  .btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);}
+  .btn-primary:active{transform:translateY(0);}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+  .alert{padding:.7rem 1rem;border-radius:8px;font-size:.875rem;margin-bottom:1rem;display:none;}
+  .alert.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
+  .alert.success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#86efac;}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* Honeypot — invisible pour les humains, visible pour les bots */
+  .hp-trap{position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;tabindex:-1;}
+</style>
+</head>
+<body>
+
+<div class="bg-stars" id="bgStars"></div>
+
+<div class="login-wrap">
+  <div class="logo">
+    <h1>⚔ VirtualTable RPG</h1>
+    <p>Votre table de jeu de rôle virtuelle</p>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('login')">Connexion</div>
+      <div class="tab" onclick="switchTab('register')">Inscription</div>
+    </div>
+
+    <div id="alert" class="alert"></div>
+
+    <!-- Login -->
+    <div class="panel active" id="panel-login">
+      <form onsubmit="doLogin(event)">
+        <!-- Honeypot : ne jamais remplir ce champ -->
+        <div class="hp-trap" aria-hidden="true">
+          <label for="l-website">Ne pas remplir</label>
+          <input type="text" id="l-website" name="website" autocomplete="off" tabindex="-1"/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="l-email" placeholder="votre@email.com" required/>
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input type="password" id="l-password" placeholder="••••••••" required/>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btn-login">Se connecter</button>
+      </form>
+    </div>
+
+    <!-- Register -->
+    <div class="panel" id="panel-register">
+      <form onsubmit="doRegister(event)">
+        <!-- Honeypot : ne jamais remplir ce champ -->
+        <div class="hp-trap" aria-hidden="true">
+          <label for="r-website">Ne pas remplir</label>
+          <input type="text" id="r-website" name="website" autocomplete="off" tabindex="-1"/>
+        </div>
+        <div class="form-group">
+          <label>Nom d'aventurier</label>
+          <input type="text" id="r-username" placeholder="Aragorn42" minlength="3" maxlength="50" required/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="r-email" placeholder="votre@email.com" required/>
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input type="password" id="r-password" placeholder="Min. 8 caractères" minlength="8" required/>
+        </div>
+        <div class="form-group">
+          <label>Code d'invitation <span style="color:#ef4444">*</span></label>
+          <input type="text" id="r-invite" placeholder="ex: A3F9B2C1" maxlength="10" required
+                 style="text-transform:uppercase;letter-spacing:.12em;font-family:monospace;font-size:1rem;"
+                 oninput="this.value=this.value.toUpperCase()"/>
+          <div style="font-size:.75rem;color:#9990a8;margin-top:.3rem;">Demandez ce code à un joueur existant.</div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btn-register">Créer mon compte</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+// Rediriger si déjà connecté
+(async () => {
+  const token = getToken();
+  if (token) {
+    try { await API.auth.me(); window.location.href = '/lobby.html'; } catch { clearToken(); }
+  }
+})();
+
+// Étoiles de fond
+const stars = document.getElementById('bgStars');
+for (let i = 0; i < 80; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${Math.random()*3+1}px;height:${Math.random()*3+1}px;--d:${(Math.random()*4+2).toFixed(1)}s;animation-delay:${(Math.random()*4).toFixed(1)}s`;
+  stars.appendChild(s);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('panel-login').classList.toggle('active', tab==='login');
+  document.getElementById('panel-register').classList.toggle('active', tab==='register');
+  hideAlert();
+}
+
+function showAlert(msg, type='error') {
+  const el = document.getElementById('alert');
+  el.textContent = msg; el.className = `alert ${type}`; el.style.display = 'block';
+}
+function hideAlert() {
+  document.getElementById('alert').style.display = 'none';
+}
+
+async function doLogin(e) {
+  e.preventDefault(); hideAlert();
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = 'Connexion…';
+  try {
+    const { user, token } = await API.auth.login(
+      document.getElementById('l-email').value,
+      document.getElementById('l-password').value,
+      document.getElementById('l-website').value   // honeypot
+    );
+    setToken(token); setUser(user);
+    window.location.href = '/lobby.html';
+  } catch (err) {
+    showAlert(err.message);
+    btn.disabled = false; btn.textContent = 'Se connecter';
+  }
+}
+
+async function doRegister(e) {
+  e.preventDefault(); hideAlert();
+  const btn = document.getElementById('btn-register');
+  btn.disabled = true; btn.textContent = 'Création…';
+  try {
+    const { user, token } = await API.auth.register(
+      document.getElementById('r-username').value,
+      document.getElementById('r-email').value,
+      document.getElementById('r-password').value,
+      document.getElementById('r-invite').value.trim(),
+      document.getElementById('r-website').value   // honeypot
+    );
+    setToken(token); setUser(user);
+    window.location.href = '/lobby.html';
+  } catch (err) {
+    showAlert(err.message);
+    btn.disabled = false; btn.textContent = 'Créer mon compte';
+  }
+}
+</script>
+</body>
+</html>

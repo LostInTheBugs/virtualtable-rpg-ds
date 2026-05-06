@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VirtualTable RPG — Notes de version</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script defer src="/script.js" data-website-id="f30f0aac-dc25-407f-8f70-cc389c9df496"></script>
+<style>
+:root{--bg:#0e0e14;--surface:#16161f;--surface2:#1e1e2a;--surface3:#242430;--border:#2a2a3a;--accent:#c9a227;--accent2:#8b5cf6;--text:#e8e0d0;--text2:#9990a8;--danger:#ef4444;--success:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:.8rem 1.5rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:30;}
+.logo-sm{font-family:'Cinzel',serif;color:var(--accent);font-size:1.05rem;text-decoration:none;}
+.spacer{flex:1;}
+.user-dropdown{position:relative;}
+.dropdown-trigger{display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.3rem .5rem;border-radius:8px;transition:.15s;user-select:none;}
+.dropdown-trigger:hover{background:var(--surface2);}
+.dropdown-trigger .chevron{font-size:.6rem;color:var(--text2);transition:.2s;}
+.dropdown-menu{position:absolute;right:0;top:calc(100% + .4rem);background:var(--surface);border:1px solid var(--border);border-radius:10px;min-width:200px;box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:50;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-6px);transition:.15s;}
+.dropdown-menu.open{opacity:1;pointer-events:all;transform:translateY(0);}
+.dropdown-item{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;font-size:.85rem;color:var(--text);text-decoration:none;transition:.15s;cursor:pointer;border:none;background:none;width:100%;text-align:left;}
+.dropdown-item:hover{background:var(--surface2);}
+.dropdown-item.active{color:var(--accent);}
+.dropdown-item.danger{color:var(--danger);}
+.dropdown-item.danger:hover{background:rgba(239,68,68,.08);}
+.dropdown-sep{height:1px;background:var(--border);margin:.2rem 0;}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#0e0e14;overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+
+.page-wrap{max-width:720px;margin:0 auto;padding:2.5rem 1.5rem 5rem;}
+.page-hero{text-align:center;margin-bottom:3rem;}
+.page-hero h1{font-family:'Cinzel',serif;font-size:2rem;color:var(--accent);margin-bottom:.5rem;}
+.page-hero p{font-size:.95rem;color:var(--text2);}
+
+/* Timeline */
+.timeline{position:relative;padding-left:2rem;}
+.timeline::before{content:'';position:absolute;left:.55rem;top:.3rem;bottom:.3rem;width:2px;background:var(--border);}
+.release{position:relative;margin-bottom:2.5rem;}
+.release-dot{position:absolute;left:-1.57rem;top:.3rem;width:12px;height:12px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);transition:.2s;}
+.release.latest .release-dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 8px rgba(201,162,39,.4);}
+.release-head{display:flex;align-items:baseline;gap:.75rem;margin-bottom:.85rem;flex-wrap:wrap;}
+.release-version{font-family:'Cinzel',serif;font-size:1.05rem;color:var(--accent);}
+.release.latest .release-version{color:var(--accent);}
+.release-date{font-size:.78rem;color:var(--text2);}
+.release-tag{font-size:.65rem;font-weight:700;padding:.12rem .42rem;border-radius:4px;letter-spacing:.04em;}
+.tag-latest{background:rgba(201,162,39,.15);color:var(--accent);}
+.tag-stable{background:rgba(34,197,94,.12);color:var(--success);}
+.release-body{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.4rem;}
+.change-group{margin-bottom:.9rem;}
+.change-group:last-child{margin-bottom:0;}
+.change-group-title{font-size:.7rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.45rem;}
+.change-list{list-style:none;display:flex;flex-direction:column;gap:.3rem;}
+.change-list li{font-size:.84rem;color:var(--text2);padding-left:1.1rem;position:relative;line-height:1.5;}
+.change-list li::before{content:'';position:absolute;left:0;top:.45em;width:5px;height:5px;border-radius:50%;background:var(--border);}
+.change-list li.feat::before{background:var(--accent);}
+.change-list li.fix::before{background:var(--success);}
+.change-list li.improve::before{background:var(--accent2);}
+.change-list li strong{color:var(--text);}
+
+.legend{display:flex;gap:1.2rem;font-size:.75rem;color:var(--text2);margin-bottom:2rem;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:.4rem;}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo-sm" href="/lobby.html">⚔ VirtualTable RPG</a>
+  <div class="spacer"></div>
+  <div class="user-dropdown" id="userDropdown">
+    <div class="dropdown-trigger" onclick="toggleDropdown()">
+      <div class="avatar" id="userAvatar">?</div>
+      <span id="userName">…</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="dropdown-menu" id="dropdownMenu">
+      <a class="dropdown-item" href="/account.html">👤 Mon compte</a>
+      <a class="dropdown-item" href="/features.html">✨ Fonctionnalités</a>
+      <a class="dropdown-item active" href="/releases.html">📋 Notes de version</a>
+      <div class="dropdown-sep"></div>
+      <a class="dropdown-item" id="adminLink" href="/admin.html" style="display:none">🛡 Administration</a>
+      <div class="dropdown-sep" id="adminSep" style="display:none"></div>
+      <button class="dropdown-item danger" onclick="logout()">🚪 Déconnexion</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <div class="page-hero">
+    <h1>📋 Notes de version</h1>
+    <p>Historique des mises à jour de VirtualTable RPG.</p>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Nouvelle fonctionnalité</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div> Amélioration</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div> Correction</div>
+  </div>
+
+  <div class="timeline">
+
+    <!-- v1.11 — Actuelle -->
+    <div class="release latest">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.11</span>
+        <span class="release-date">Mai 2026</span>
+        <span class="release-tag tag-latest">Actuelle</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Montée de niveau D&amp;D 5e</strong> — bouton <strong>+</strong> dans la fiche personnage pour envoyer une demande au MJ ; choix entre moyenne fixe ou jet de dé pour les PV gagnés</li>
+            <li class="feat"><strong>File d'approbation MJ</strong> — panneau dédié (bouton ⬆ Niveaux avec badge) listant toutes les demandes en attente ; le MJ approuve ou refuse avec message optionnel</li>
+            <li class="feat"><strong>Calculs automatiques D&amp;D 5e</strong> — à l'approbation : PV max, bonus de maîtrise et emplacements de sorts (full casters, half casters, Warlock) recalculés selon les tables officielles</li>
+            <li class="feat"><strong>Synchronisation temps réel</strong> — la fiche et la barre latérale du joueur se mettent à jour instantanément sans rechargement</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-title">Corrections</div>
+          <ul class="change-list">
+            <li class="fix"><strong>Tooltip fantôme</strong> — la tooltip "Jet de INT ou SAG…" n'apparaît plus au survol de l'indicateur de charge</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.10 -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.10</span>
+        <span class="release-date">Mai 2026</span>
+        <span class="release-tag tag-stable">Stable</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Descriptions de sorts</strong> — 158 sorts avec texte complet (aidedd.org) ; tooltip au survol et panneau détail au clic droit</li>
+            <li class="feat"><strong>Surlancé (upcast)</strong> — clic sur un sort de niveau ≥ 1 ouvre une modale de sélection de l'emplacement ; les dés sont recalculés automatiquement selon la progression indiquée dans la description ("Aux niveaux supérieurs")</li>
+            <li class="feat"><strong>Sauvegarde dans le chat</strong> — le DD de sauvegarde et la caractéristique associée (DEX, CON…) sont affichés dans le fil de chat lors du lancer</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.9 -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.9</span>
+        <span class="release-date">Mai 2026</span>
+        <span class="release-tag tag-stable">Stable</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Sélecteur d'objets magiques</strong> — fenêtre style spell-picker avec 270+ objets D&D 5e (filtre par rareté, type, recherche textuelle)</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-title">Sécurité</div>
+          <ul class="change-list">
+            <li class="fix"><strong>Faille cross-campagne</strong> — PUT/DELETE <code>/characters/:charId</code> vérifiait l'appartenance à la campagne mais pas que le personnage en faisait partie ; un membre pouvait modifier des personnages d'autres campagnes</li>
+            <li class="fix"><strong>Injection via Socket.io</strong> — les événements <code>chat_message</code> et <code>dice_roll</code> acceptaient un <code>campaign_id</code> arbitraire ; désormais vérifié contre le <code>campaignId</code> de la session socket</li>
+            <li class="fix"><strong>XSS dans les handouts</strong> — le rendu Markdown via <code>marked.parse()</code> n'était pas sanitisé ; ajout de DOMPurify pour filtrer le HTML dangereux</li>
+            <li class="fix"><strong>CORS</strong> — ALLOWED_ORIGIN pointait sur l'ancien domaine <code>ionos06.cloudfr.net</code>, corrigé vers <code>virtualtable.cloudfr.net</code></li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-title">Corrections</div>
+          <ul class="change-list">
+            <li class="fix"><strong>Sorts non sauvegardés à la création</strong> — <code>POST /characters</code> ignorait <code>spells</code>, <code>proficiency_bonus</code>, <code>saving_throws</code>, <code>inventory</code>, <code>subclass</code> et <code>abilities</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.8 -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.8</span>
+        <span class="release-date">Mai 2026</span>
+        <span class="release-tag tag-stable">Stable</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Dés de sorts configurés</strong> — chaque sort utilise ses propres dés selon son type : attaque (1d20 + bonus), jet de sauvegarde (DD annoncé + dégâts), soin (dés + modificateur d'incantation), touche automatique</li>
+            <li class="feat"><strong>Sélecteurs race / classe / sous-classe</strong> — listes prédéfinies D&D 5e et Pathfinder 2e avec saisie libre possible dans la fiche personnage</li>
+            <li class="feat"><strong>Auto-sélection du personnage actif</strong> — le premier personnage est sélectionné automatiquement à la connexion</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-title">Corrections</div>
+          <ul class="change-list">
+            <li class="fix"><strong>Page complètement bloquée</strong> — double déclaration <code>const SPELLS_DB</code> entre le script externe et le script inline provoquait un SyntaxError qui empêchait tout le JavaScript de s'exécuter</li>
+            <li class="fix"><strong>Crash au chargement du personnage</strong> — appel <code>parentNode.insertBefore</code> sur un nœud nul dans la section jets rapides</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.7 -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.7</span>
+        <span class="release-date">Mai 2025</span>
+        <span class="release-tag tag-stable">Stable</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Sélecteur de sorts dans le lobby</strong> — fenêtre de choix avec filtre niveau/classe/école, identique à la vue de jeu</li>
+            <li class="feat"><strong>Sorts dans la fiche de jeu</strong> — remplacement des compétences par la liste des sorts, clic gauche pour lancer, clic droit pour les infos</li>
+            <li class="feat"><strong>Déplacement des zones de sorts</strong> — glisser-déposer pour repositionner cercles, cônes et lignes</li>
+            <li class="feat"><strong>Page Fonctionnalités & Notes de version</strong> — accessibles depuis le menu utilisateur</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-title">Améliorations</div>
+          <ul class="change-list">
+            <li class="improve"><strong>Menu utilisateur</strong> — liens vers le compte, les fonctionnalités, les notes de version et l'administration</li>
+            <li class="improve"><strong>Chat</strong> — support du gras (**texte**) et italique (*texte*) dans tous les messages</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-title">Corrections</div>
+          <ul class="change-list">
+            <li class="fix"><strong>Sélecteur de sorts</strong> — sorts non sélectionnables à cause d'un problème d'échappement HTML dans les attributs onclick</li>
+            <li class="fix"><strong>Sorts du lobby</strong> — format de données incompatible entre lobby et vue de jeu, corrigé par normalisation</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.6 -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.6</span>
+        <span class="release-date">Avril 2025</span>
+        <span class="release-tag tag-stable">Stable</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Configuration de campagne</strong> — page dédiée (système, visibilité des PV, grille)</li>
+            <li class="feat"><strong>Ownership des personnages</strong> — personnages liés à leur joueur, MJ voit tout</li>
+            <li class="feat"><strong>Support multi-système</strong> — Pathfinder 2e en plus de D&D 5e</li>
+            <li class="feat"><strong>Automatisation du combat</strong> — jets d'attaque et de dégâts depuis la fiche</li>
+            <li class="feat"><strong>Import de cartes UVTT</strong> — Universal VTT avec murs et lumières intégrés</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-title">Améliorations</div>
+          <ul class="change-list">
+            <li class="improve"><strong>Barre d'outils</strong> — simplification, suppression des menus en doublon avec la config de campagne</li>
+            <li class="improve"><strong>Fiches personnage</strong> — jets de sauvegarde cliquables dans la barre latérale</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.5 -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.5</span>
+        <span class="release-date">Mars 2025</span>
+        <span class="release-tag tag-stable">Stable</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Dés 3D animés</strong> — rendu physique avec Three.js</li>
+            <li class="feat"><strong>Créateur de token</strong> — recadrage, bordure, effet lumineux</li>
+            <li class="feat"><strong>Journal de campagne</strong> — éditeur Markdown riche avec images</li>
+            <li class="feat"><strong>Éditeur de murs</strong> — dessin libre pour bloquer la vision</li>
+            <li class="feat"><strong>Éclairage dynamique & LOS</strong> — calcul en temps réel</li>
+            <li class="feat"><strong>Grille hexagonale</strong> — en plus de la grille carrée</li>
+            <li class="feat"><strong>Pathfinding</strong> — déplacement assisté des tokens</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.4 -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.4</span>
+        <span class="release-date">Février 2025</span>
+        <span class="release-tag tag-stable">Stable</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Zones de sorts</strong> — cercle, cône, ligne, cube sur la carte</li>
+            <li class="feat"><strong>Macros de jets</strong> — formules personnalisables</li>
+            <li class="feat"><strong>Handouts</strong> — partage de notes et images entre MJ et joueurs</li>
+            <li class="feat"><strong>Tables aléatoires</strong> — créer et lancer des tables pondérées</li>
+            <li class="feat"><strong>Tokens animés</strong> — support WEBM et GIF</li>
+            <li class="feat"><strong>Effets météo</strong> — pluie, neige, brouillard, tempête</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-title">Améliorations</div>
+          <ul class="change-list">
+            <li class="improve"><strong>Mesure de distance</strong> — outil de règle sur la carte</li>
+            <li class="improve"><strong>Raccourcis clavier</strong> — navigation rapide en partie</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.3 -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.3</span>
+        <span class="release-date">Janvier 2025</span>
+        <span class="release-tag tag-stable">Stable</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Tracker d'initiative</strong> — ordre de combat en temps réel</li>
+            <li class="feat"><strong>Conditions D&D 5e</strong> — 15 états (avantage, désavantage, etc.)</li>
+            <li class="feat"><strong>Bibliothèque de PNJ</strong> — créatures du Manuel des Monstres D&D 5e</li>
+            <li class="feat"><strong>Gestion de compte</strong> — profil, avatar, mot de passe, suppression</li>
+            <li class="feat"><strong>Playlist musicale</strong> — synchronisée pour tous les joueurs</li>
+            <li class="feat"><strong>Code d'invitation visible en jeu</strong> — affiché dans l'interface</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.2 -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.2</span>
+        <span class="release-date">Décembre 2024</span>
+        <span class="release-tag tag-stable">Stable</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Tokens PNJ libres</strong> — sans fiche personnage liée</li>
+            <li class="feat"><strong>Édition PV sur token</strong> — clic direct sur la carte</li>
+            <li class="feat"><strong>Messages privés</strong> — commande /w dans le chat</li>
+            <li class="feat"><strong>Persistance du brouillard</strong> — survit aux déconnexions</li>
+            <li class="feat"><strong>Rayon de vision</strong> — configurable par personnage</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-title">Corrections</div>
+          <ul class="change-list">
+            <li class="fix">Résolution DNS persistante après reboot serveur</li>
+            <li class="fix">Brouillard de guerre non synchronisé entre joueurs</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.1 -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.1</span>
+        <span class="release-date">Novembre 2024</span>
+        <span class="release-tag tag-stable">Stable</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Fonctionnalités</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Interface fiche personnage</strong> — stats, compétences, sorts, inventaire</li>
+            <li class="feat"><strong>Backups PostgreSQL</strong> — sauvegardes automatiques quotidiennes</li>
+            <li class="feat"><strong>Tracking Umami</strong> — statistiques d'utilisation anonymes</li>
+            <li class="feat"><strong>Rate limiting</strong> — protection anti-brute-force sur les routes d'auth</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.0 -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-head">
+        <span class="release-version">v1.0</span>
+        <span class="release-date">Octobre 2024</span>
+        <span class="release-tag tag-stable">Fondations</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-title">Lancement initial</div>
+          <ul class="change-list">
+            <li class="feat"><strong>Lobby</strong> — création et gestion de campagnes</li>
+            <li class="feat"><strong>Table de jeu</strong> — carte interactive avec tokens</li>
+            <li class="feat"><strong>Brouillard de guerre</strong> — révélation par le MJ</li>
+            <li class="feat"><strong>Chat en temps réel</strong> — via Socket.io</li>
+            <li class="feat"><strong>Authentification</strong> — inscription sur invitation, JWT</li>
+            <li class="feat"><strong>Infrastructure</strong> — Docker, nginx HTTPS, PostgreSQL</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /timeline -->
+</div>
+
+<script src="/js/api.js?v=2"></script>
+<script>
+(async () => {
+  const token = getToken();
+  if (!token) { window.location.href = '/'; return; }
+  try {
+    const user = await API.auth.me();
+    setUser(user);
+    const av = document.getElementById('userAvatar');
+    if (user.avatar_url) av.innerHTML = `<img src="${user.avatar_url}" alt="${user.username}"/>`;
+    else av.textContent = user.username[0].toUpperCase();
+    document.getElementById('userName').textContent = user.username;
+    if (user.is_admin) {
+      document.getElementById('adminLink').style.display = '';
+      document.getElementById('adminSep').style.display = '';
+    }
+  } catch {
+    window.location.href = '/';
+  }
+})();
+
+function toggleDropdown() {
+  document.getElementById('dropdownMenu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!document.getElementById('userDropdown').contains(e.target))
+    document.getElementById('dropdownMenu').classList.remove('open');
+});
+function logout() {
+  clearToken();
+  localStorage.removeItem('rpg_user');
+  window.location.href = '/';
+}
+</script>
+</body>
+</html>

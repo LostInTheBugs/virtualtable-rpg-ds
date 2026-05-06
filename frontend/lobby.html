@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VirtualTable RPG — Lobby</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script defer src="/script.js" data-website-id="f30f0aac-dc25-407f-8f70-cc389c9df496"></script>
+<style>
+:root{--bg:#0e0e14;--surface:#16161f;--surface2:#1e1e2a;--surface3:#242430;--border:#2a2a3a;--accent:#c9a227;--accent2:#8b5cf6;--text:#e8e0d0;--text2:#9990a8;--danger:#ef4444;--success:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:.8rem 1.5rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:30;}
+.logo-sm{font-family:'Cinzel',serif;color:var(--accent);font-size:1.05rem;text-decoration:none;}
+.spacer{flex:1;}
+.user-badge{display:flex;align-items:center;gap:.6rem;font-size:.875rem;color:var(--text2);}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#0e0e14;overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.btn-logout{background:none;border:1px solid var(--border);color:var(--text2);padding:.3rem .75rem;border-radius:6px;cursor:pointer;font-size:.8rem;transition:.2s;}
+.btn-logout:hover{border-color:var(--danger);color:var(--danger);}
+/* Dropdown */
+.user-dropdown{position:relative;}
+.dropdown-trigger{display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.3rem .5rem;border-radius:8px;transition:.15s;user-select:none;}
+.dropdown-trigger:hover{background:var(--surface2);}
+.dropdown-trigger .chevron{font-size:.6rem;color:var(--text2);transition:.2s;}
+.dropdown-menu{position:absolute;right:0;top:calc(100% + .4rem);background:var(--surface);border:1px solid var(--border);border-radius:10px;min-width:190px;box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:50;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-6px);transition:.15s;}
+.dropdown-menu.open{opacity:1;pointer-events:all;transform:translateY(0);}
+.dropdown-item{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;font-size:.85rem;color:var(--text);text-decoration:none;transition:.15s;cursor:pointer;border:none;background:none;width:100%;text-align:left;}
+.dropdown-item:hover{background:var(--surface2);}
+.dropdown-item.danger{color:var(--danger);}
+.dropdown-item.danger:hover{background:rgba(239,68,68,.08);}
+.dropdown-sep{height:1px;background:var(--border);margin:.2rem 0;}
+
+/* Layout deux colonnes */
+.layout{display:flex;min-height:calc(100vh - 49px);}
+.col-left{width:340px;border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;}
+.col-right{flex:1;overflow-y:auto;}
+
+/* Panneau campagnes */
+.panel-header{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;}
+.panel-title{font-family:'Cinzel',serif;color:var(--accent);font-size:.95rem;}
+.btn-xs{padding:.3rem .7rem;border:none;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:500;transition:.2s;display:inline-flex;align-items:center;gap:.3rem;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#a07c18);color:#0e0e14;}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text);}
+.btn-secondary:hover{border-color:var(--accent2);color:var(--accent2);}
+.btn-danger{background:none;border:1px solid transparent;color:var(--text2);}
+.btn-danger:hover{border-color:var(--danger);color:var(--danger);}
+.btn{padding:.55rem 1rem;border:none;border-radius:8px;cursor:pointer;font-size:.875rem;font-weight:500;transition:.2s;}
+
+.camps-list{flex:1;overflow-y:auto;padding:.6rem;}
+.camp-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;margin-bottom:.5rem;cursor:pointer;transition:.2s;position:relative;}
+.camp-item.active{border-color:var(--accent);background:var(--surface2);}
+.camp-item:hover:not(.active){border-color:rgba(201,162,39,.3);}
+.camp-item-name{font-family:'Cinzel',serif;font-size:.9rem;color:var(--text);margin-bottom:.2rem;}
+.camp-item-meta{font-size:.75rem;color:var(--text2);display:flex;gap:.6rem;align-items:center;}
+.role-badge{padding:.15rem .5rem;border-radius:20px;font-size:.68rem;font-weight:600;}
+.role-gm{background:rgba(201,162,39,.15);color:var(--accent);}
+.role-player{background:rgba(139,92,246,.15);color:var(--accent2);}
+
+.empty-camps{padding:2rem;text-align:center;color:var(--text2);font-size:.875rem;}
+
+/* Panneau détail campagne */
+.detail-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text2);gap:1rem;padding:3rem;}
+.detail-empty .icon{font-size:3rem;opacity:.4;}
+
+.detail-wrap{padding:1.5rem;}
+.detail-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;gap:1rem;}
+.detail-title{font-family:'Cinzel',serif;font-size:1.3rem;color:var(--text);}
+.detail-system{font-size:.78rem;color:var(--accent2);text-transform:uppercase;letter-spacing:.06em;margin-top:.2rem;}
+.detail-desc{font-size:.875rem;color:var(--text2);margin-top:.5rem;line-height:1.6;}
+
+.section-title{font-family:'Cinzel',serif;font-size:.85rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between;}
+.section{margin-bottom:1.8rem;}
+
+/* Membres */
+.members-row{display:flex;flex-wrap:wrap;gap:.5rem;}
+.member-chip{display:flex;align-items:center;gap:.4rem;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:.25rem .7rem .25rem .3rem;font-size:.78rem;}
+.member-av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#0e0e14;}
+.gm-star{color:var(--accent);font-size:.7rem;}
+
+/* Personnages */
+.chars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;}
+.char-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.9rem;transition:.2s;position:relative;}
+.char-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+.char-portrait{width:44px;height:44px;border-radius:50%;border:2px solid var(--accent);background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:.6rem;overflow:hidden;}
+.char-portrait img{width:100%;height:100%;object-fit:cover;}
+.char-card-name{font-family:'Cinzel',serif;font-size:.88rem;color:var(--text);margin-bottom:.2rem;}
+.char-card-sub{font-size:.72rem;color:var(--text2);margin-bottom:.5rem;}
+.char-card-stats{display:flex;gap:.4rem;font-size:.72rem;color:var(--text2);}
+.char-stat-pill{background:var(--surface3);padding:.1rem .4rem;border-radius:4px;}
+.char-actions{display:flex;gap:.3rem;margin-top:.6rem;}
+
+.char-add-card{background:transparent;border:2px dashed var(--border);border-radius:10px;padding:.9rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;cursor:pointer;transition:.2s;min-height:130px;color:var(--text2);font-size:.82rem;}
+.char-add-card:hover{border-color:var(--accent);color:var(--accent);}
+.char-add-card .plus{font-size:1.5rem;}
+
+/* Bouton entrer dans la partie */
+.enter-game-bar{background:var(--surface);border-top:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;gap:1rem;position:sticky;bottom:0;}
+.invite-code{font-family:monospace;background:var(--surface2);border:1px solid var(--border);padding:.4rem .8rem;border-radius:6px;font-size:.85rem;color:var(--text2);letter-spacing:.1em;}
+
+/* ── Modal générique ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.2s;backdrop-filter:blur(5px);padding:1rem;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:460px;transform:translateY(10px);transition:.2s;max-height:90vh;display:flex;flex-direction:column;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-lg{max-width:760px;}
+.modal-head{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.8rem;flex-shrink:0;}
+.modal-head h3{font-family:'Cinzel',serif;color:var(--accent);font-size:1rem;flex:1;}
+.modal-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;padding:.2rem;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:1.2rem 1.5rem;overflow-y:auto;flex:1;}
+.modal-foot{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:.7rem;justify-content:flex-end;flex-shrink:0;}
+
+/* Spell picker */
+.spell-picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.2s;backdrop-filter:blur(8px);padding:1rem;}
+.spell-picker-overlay.open{opacity:1;pointer-events:all;}
+.spell-picker{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:640px;max-height:88vh;display:flex;flex-direction:column;transform:translateY(12px);transition:.2s;overflow:hidden;}
+.spell-picker-overlay.open .spell-picker{transform:translateY(0);}
+.sp-head{padding:.9rem 1.1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.7rem;flex-shrink:0;}
+.sp-head h3{font-family:'Cinzel',serif;color:var(--accent);font-size:.95rem;flex:1;}
+.sp-search{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .7rem;border-radius:7px;font-size:.88rem;outline:none;}
+.sp-search:focus{border-color:var(--accent);}
+.sp-filters{display:flex;gap:.3rem;padding:.55rem .9rem;border-bottom:1px solid var(--border);flex-wrap:wrap;flex-shrink:0;}
+.sp-filter-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:.2rem .5rem;border-radius:5px;cursor:pointer;font-size:.75rem;transition:.15s;}
+.sp-filter-btn:hover,.sp-filter-btn.on{background:rgba(201,162,39,.18);border-color:var(--accent);color:var(--accent);}
+.sp-list{flex:1;overflow-y:auto;padding:.4rem;}
+.sp-item{display:flex;align-items:center;gap:.6rem;padding:.42rem .6rem;border-radius:7px;cursor:pointer;transition:.12s;}
+.sp-item:hover{background:var(--surface2);}
+.sp-item-name{flex:1;font-size:.87rem;color:var(--text);}
+.sp-item-lvl{font-size:.72rem;font-weight:600;color:var(--accent);background:rgba(201,162,39,.12);padding:.1rem .4rem;border-radius:4px;min-width:22px;text-align:center;}
+.sp-item-school{font-size:.7rem;color:var(--text2);}
+.sp-item-classes{font-size:.68rem;color:var(--accent2);}
+.sp-empty{text-align:center;padding:2rem;color:var(--text2);font-size:.85rem;}
+.sp-footer{padding:.6rem .9rem;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:.5rem;align-items:center;}
+.sp-footer input{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.4rem .6rem;border-radius:6px;font-size:.85rem;outline:none;}
+.sp-footer input:focus{border-color:var(--accent2);}
+
+/* Formulaires */
+.form-group{margin-bottom:.9rem;}
+.form-row{display:grid;gap:.7rem;margin-bottom:.9rem;}
+.form-row-2{grid-template-columns:1fr 1fr;}
+.form-row-3{grid-template-columns:1fr 1fr 1fr;}
+label{display:block;font-size:.72rem;color:var(--text2);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em;}
+input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.55rem .8rem;border-radius:7px;font-size:.88rem;outline:none;transition:.15s;font-family:inherit;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(201,162,39,.1);}
+input[type=number]{text-align:center;}
+textarea{resize:vertical;min-height:80px;line-height:1.5;}
+.alert{padding:.6rem .9rem;border-radius:7px;font-size:.83rem;margin-bottom:.8rem;display:none;}
+.alert.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
+
+/* ── Onglets fiche perso ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.2rem;overflow-x:auto;flex-shrink:0;}
+.tab{padding:.55rem .9rem;font-size:.8rem;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:.15s;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:.5rem;margin-bottom:1rem;}
+.stat-box{background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:.5rem .3rem;text-align:center;}
+.stat-box label{font-size:.62rem;margin-bottom:.25rem;}
+.stat-box input{padding:.3rem .2rem;font-size:.95rem;font-weight:600;background:transparent;border:none;text-align:center;color:var(--accent);}
+.stat-box input:focus{outline:1px solid var(--accent);border-radius:4px;}
+.stat-mod{font-size:.72rem;color:var(--text2);margin-top:.1rem;}
+
+/* Compétences */
+.skills-grid{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;}
+.skill-row{display:flex;align-items:center;gap:.5rem;padding:.25rem .4rem;border-radius:5px;transition:.15s;cursor:pointer;}
+.skill-row:hover{background:var(--surface2);}
+.skill-row input[type=checkbox]{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+.skill-row span{font-size:.8rem;flex:1;}
+.skill-row .skill-attr{font-size:.68rem;color:var(--text2);margin-left:auto;}
+
+/* Inventaire / sorts */
+.item-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem;}
+.item-row{display:flex;align-items:center;gap:.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.4rem .7rem;}
+.item-row span{flex:1;font-size:.85rem;}
+.item-del{background:none;border:none;color:var(--text2);cursor:pointer;font-size:.9rem;padding:.1rem .3rem;border-radius:4px;}
+.item-del:hover{color:var(--danger);}
+.item-add-row{display:flex;gap:.4rem;}
+.item-add-row input{flex:1;}
+
+/* Loader */
+.loader{text-align:center;padding:1.5rem;color:var(--text2);}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+
+/* Widget upload image */
+.upload-field{display:flex;gap:.4rem;align-items:center;}
+.combo-custom{margin-top:.3rem;}
+.upload-field input[type=url],.upload-field input[type=text]{flex:1;}
+.upload-file-btn{display:inline-flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:7px;padding:.45rem .65rem;cursor:pointer;font-size:.9rem;transition:.15s;flex-shrink:0;line-height:1;}
+.upload-file-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.upload-file-btn.loading{opacity:.5;cursor:default;}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo-sm" href="/">⚔ VirtualTable RPG</a>
+  <div class="spacer"></div>
+  <div class="user-badge">
+    <div class="user-dropdown" id="userDropdown">
+      <div class="dropdown-trigger" onclick="toggleDropdown()">
+        <div class="avatar" id="userAvatar">?</div>
+        <span id="userName">…</span>
+        <span class="chevron" id="chevronIcon">▼</span>
+      </div>
+      <div class="dropdown-menu" id="dropdownMenu">
+        <a class="dropdown-item" href="/account.html">👤 Mon compte</a>
+        <div class="dropdown-item" onclick="showInviteCode();toggleDropdown();">🎟 Mon code d'invitation</div>
+        <div class="dropdown-sep"></div>
+        <a class="dropdown-item" href="/features.html">✨ Fonctionnalités</a>
+        <a class="dropdown-item" href="/releases.html">📋 Notes de version</a>
+        <div class="dropdown-sep"></div>
+        <a class="dropdown-item" id="adminLink" href="/admin.html" style="display:none">🛡 Administration</a>
+        <div class="dropdown-sep" id="adminSep" style="display:none"></div>
+        <button class="dropdown-item danger" onclick="logout()">🚪 Déconnexion</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- Colonne gauche : liste des campagnes -->
+  <div class="col-left">
+    <div class="panel-header">
+      <span class="panel-title">Campagnes</span>
+      <div class="spacer"></div>
+      <button class="btn-xs btn-secondary" onclick="openModal('join')" title="Rejoindre">🔑</button>
+      <button class="btn-xs btn-primary" onclick="openModal('create')">＋ Nouvelle</button>
+    </div>
+    <div class="camps-list" id="campsList">
+      <div class="loader"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- Colonne droite : détail campagne -->
+  <div class="col-right" id="detailCol">
+    <div class="detail-empty">
+      <div class="icon">🗺️</div>
+      <p>Sélectionne une campagne pour voir ses détails</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ Modal : Nouvelle campagne ═══════════════ -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Nouvelle Campagne</h3>
+      <button class="modal-close" onclick="closeModal('create')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="create-alert" class="alert error"></div>
+      <form id="form-create" onsubmit="doCreate(event)">
+        <div class="form-group">
+          <label>Nom de la campagne</label>
+          <input type="text" id="c-name" placeholder="La Montagne aux Quatre Vents" required maxlength="255"/>
+        </div>
+        <div class="form-group">
+          <label>Système de jeu</label>
+          <select id="c-system">
+            <option>D&amp;D 5e</option><option>Pathfinder 2e</option>
+            <option>Starfinder</option><option>Call of Cthulhu</option>
+            <option>Shadowrun</option><option>Warhammer</option><option>Autre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Description (optionnel)</label>
+          <textarea id="c-desc" placeholder="Résumé de la campagne…"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeModal('create')">Annuler</button>
+      <button class="btn btn-primary" onclick="document.getElementById('form-create').requestSubmit()" id="btn-create">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ Modal : Rejoindre ═══════════════ -->
+<div class="modal-overlay" id="modal-join">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Rejoindre une Campagne</h3>
+      <button class="modal-close" onclick="closeModal('join')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="join-alert" class="alert error"></div>
+      <form id="form-join" onsubmit="doJoin(event)">
+        <div class="form-group">
+          <label>Code d'invitation</label>
+          <input type="text" id="j-code" placeholder="ABC123" maxlength="10"
+            style="text-transform:uppercase;letter-spacing:.12em;font-family:monospace;font-size:1.1rem;" required/>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeModal('join')">Annuler</button>
+      <button class="btn btn-primary" onclick="document.getElementById('form-join').requestSubmit()" id="btn-join">Rejoindre</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ Modal : Fiche de personnage ═══════════════ -->
+<div class="modal-overlay" id="modal-char">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <h3 id="char-modal-title">Nouveau Personnage</h3>
+      <button class="modal-close" onclick="closeModal('char')">✕</button>
+    </div>
+
+    <!-- Onglets -->
+    <div class="tabs" id="charTabs">
+      <div class="tab active" onclick="switchCharTab('identity')">⚔ Identité</div>
+      <div class="tab" onclick="switchCharTab('stats')">📊 Caract.</div>
+      <div class="tab" onclick="switchCharTab('skills')">🎯 Compétences</div>
+      <div class="tab" onclick="switchCharTab('inventory')">🎒 Inventaire</div>
+      <div class="tab" onclick="switchCharTab('spells')">✨ Sorts</div>
+      <div class="tab" onclick="switchCharTab('notes')">📝 Notes</div>
+    </div>
+
+    <div class="modal-body" style="padding-top:0;">
+      <div id="char-alert" class="alert error"></div>
+
+      <!-- Onglet Identité -->
+      <div class="tab-panel active" id="tab-identity">
+        <div class="form-row form-row-2">
+          <div class="form-group" style="margin:0">
+            <label>Nom du personnage *</label>
+            <input type="text" id="ch-name" placeholder="Gandalf le Gris" required maxlength="255"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Race</label>
+            <select id="ch-race-sel" onchange="onLobbyComboSel('race')"></select>
+            <input type="text" id="ch-race" class="combo-custom" style="display:none" maxlength="100" placeholder="Saisir une race…"/>
+          </div>
+        </div>
+        <div class="form-row form-row-2">
+          <div class="form-group" style="margin:0">
+            <label>Classe</label>
+            <select id="ch-class-sel" onchange="onLobbyComboSel('class')"></select>
+            <input type="text" id="ch-class" class="combo-custom" style="display:none" maxlength="100" placeholder="Saisir une classe…"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Niveau</label>
+            <input type="number" id="ch-level" value="1" min="1" max="20"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Portrait</label>
+          <div class="upload-field">
+            <input type="url" id="ch-portrait" placeholder="URL ou téléverser…" oninput="updatePortraitPreview()"/>
+            <label class="upload-file-btn" for="ch-portrait-file" title="Téléverser une image">📎</label>
+            <input type="file" id="ch-portrait-file" accept="image/*" style="display:none"
+              onchange="uploadImage(this,'ch-portrait',updatePortraitPreview)"/>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.6rem;margin-top:.4rem;">
+          <div id="portraitPreview" style="width:56px;height:56px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.6rem;overflow:hidden;flex-shrink:0;">🧙</div>
+          <span style="font-size:.78rem;color:var(--text2);">Prévisualisation du portrait</span>
+        </div>
+      </div>
+
+      <!-- Onglet Caractéristiques -->
+      <div class="tab-panel" id="tab-stats">
+        <div class="stats-grid" id="statsGrid">
+          <!-- généré par JS -->
+        </div>
+        <div class="form-row form-row-3">
+          <div><label>PV max</label><input type="number" id="ch-hp" value="10" min="1"/></div>
+          <div><label>Classe d'armure</label><input type="number" id="ch-ac" value="10" min="1"/></div>
+          <div><label>Vitesse (m)</label><input type="number" id="ch-speed" value="9" min="0"/></div>
+        </div>
+        <div class="form-row form-row-2">
+          <div><label>Initiative (bonus)</label><input type="number" id="ch-init" value="0" min="-5" max="20"/></div>
+          <div><label>Bonus de maîtrise</label><input type="number" id="ch-prof" value="2" min="2" max="6"/></div>
+        </div>
+      </div>
+
+      <!-- Onglet Compétences -->
+      <div class="tab-panel" id="tab-skills">
+        <p style="font-size:.78rem;color:var(--text2);margin-bottom:.8rem;">Coche les compétences maîtrisées. L'attribut associé est indiqué.</p>
+        <div class="skills-grid" id="skillsGrid">
+          <!-- généré par JS -->
+        </div>
+      </div>
+
+      <!-- Onglet Inventaire -->
+      <div class="tab-panel" id="tab-inventory">
+        <div class="form-row form-row-3" style="margin-bottom:.4rem;">
+          <div><label>PO</label><input type="number" id="ch-gp" value="0" min="0"/></div>
+          <div><label>PA</label><input type="number" id="ch-sp" value="0" min="0"/></div>
+          <div><label>PC</label><input type="number" id="ch-cp" value="0" min="0"/></div>
+        </div>
+        <div class="item-list" id="inventoryList"></div>
+        <div class="item-add-row">
+          <input type="text" id="inv-input" placeholder="Épée longue, Parchemin de détection…" maxlength="100"/>
+          <button type="button" class="btn btn-secondary" onclick="addItem('inventory')" style="white-space:nowrap;">＋ Ajouter</button>
+        </div>
+      </div>
+
+      <!-- Onglet Sorts -->
+      <div class="tab-panel" id="tab-spells">
+        <div class="form-row form-row-3" style="margin-bottom:.8rem;">
+          <div><label>Emplacement niv.1</label><input type="number" id="sp-1" value="0" min="0" max="4"/></div>
+          <div><label>Emplacement niv.2</label><input type="number" id="sp-2" value="0" min="0" max="3"/></div>
+          <div><label>Emplacement niv.3</label><input type="number" id="sp-3" value="0" min="0" max="3"/></div>
+        </div>
+        <div class="item-list" id="spellList"></div>
+        <div class="item-add-row" style="justify-content:flex-start;">
+          <button type="button" class="btn btn-secondary" onclick="openLobbySpellPicker()">✨ Choisir un sort</button>
+        </div>
+      </div>
+
+      <!-- Onglet Notes -->
+      <div class="tab-panel" id="tab-notes">
+        <div class="form-group">
+          <label>Histoire &amp; Personnalité</label>
+          <textarea id="ch-notes" rows="8" placeholder="Origine, traits de caractère, liens, idéaux, défauts, secrets…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeModal('char')">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-char" onclick="saveCharacter()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- LOBBY SPELL PICKER MODAL                               -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="spell-picker-overlay" id="lobbySpellPickerOverlay" onclick="if(event.target===this)closeLobbySpellPicker()">
+  <div class="spell-picker">
+    <div class="sp-head">
+      <h3>✨ Choisir un sort</h3>
+      <input class="sp-search" id="lspSearch" type="text" placeholder="Rechercher un sort…" oninput="filterLobbySpells()" autocomplete="off"/>
+      <button class="modal-close" onclick="closeLobbySpellPicker()">✕</button>
+    </div>
+    <div class="sp-filters" id="lspFilters"></div>
+    <div class="sp-list" id="lspList"></div>
+    <div class="sp-footer">
+      <span style="font-size:.75rem;color:var(--text2);white-space:nowrap">Saisie manuelle :</span>
+      <input id="lspManualName" type="text" placeholder="Nom du sort" style="flex:1"/>
+      <input id="lspManualLvl" type="number" min="0" max="9" value="1" style="width:52px;text-align:center;flex:none;"/>
+      <button type="button" class="btn btn-secondary btn-xs" onclick="addLobbySpellManual()">＋ Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/spells-db.js?v=1"></script>
+<script src="/js/api.js?v=2"></script>
+<script>
+// ── Données ────────────────────────────────────────────────────
+const STATS = [
+  {key:'str',label:'FOR'},{key:'dex',label:'DEX'},{key:'con',label:'CON'},
+  {key:'int',label:'INT'},{key:'wis',label:'SAG'},{key:'cha',label:'CHA'},
+];
+
+// ── Combo-select data (D&D 5e — lobby uses D&D 5e only) ──────────
+const LOBBY_RACES   = ['Humain','Elfe','Elfe des bois','Elfe de haute noblesse','Elfe noir (Drow)','Nain des collines','Nain des montagnes','Halfelin','Gnome des forêts','Gnome des roches','Demi-Elfe','Demi-Orc','Tieffelin','Dragonien','Aasimar','Goliath','Triton','Tabaxi','Kenku','Lizardfolk','Tortle','Firbolg','Yuan-ti Pureblooded'];
+const LOBBY_CLASSES = ['Barbare','Barde','Clerc','Druide','Guerrier','Moine','Paladin','Rôdeur','Roublard','Ensorceleur','Occultiste','Magicien','Artificier','Sangdragon (Blood Hunter)'];
+
+function buildLobbyComboOptions(selId, options, currentVal) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  sel.innerHTML = '';
+  let hasMatch = false;
+  options.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt; o.textContent = opt;
+    if (opt === currentVal) { o.selected = true; hasMatch = true; }
+    sel.appendChild(o);
+  });
+  const custom = document.createElement('option');
+  custom.value = '__custom__'; custom.textContent = '✏ Saisie libre…';
+  if (!hasMatch && currentVal) custom.selected = true;
+  sel.appendChild(custom);
+}
+
+function onLobbyComboSel(field) {
+  const sel   = document.getElementById(`ch-${field}-sel`);
+  const input = document.getElementById(`ch-${field}`);
+  if (!sel || !input) return;
+  if (sel.value === '__custom__') {
+    input.style.display = '';
+    input.focus();
+  } else {
+    input.style.display = 'none';
+    input.value = '';
+  }
+}
+
+function loadLobbyComboValue(field, value) {
+  const sel   = document.getElementById(`ch-${field}-sel`);
+  const input = document.getElementById(`ch-${field}`);
+  if (!sel) return;
+  if (!value) { sel.selectedIndex = 0; if (input) input.style.display = 'none'; return; }
+  let found = false;
+  for (const opt of sel.options) {
+    if (opt.value === value && opt.value !== '__custom__') { found = true; break; }
+  }
+  if (found) {
+    sel.value = value;
+    if (input) { input.style.display = 'none'; input.value = ''; }
+  } else {
+    sel.value = '__custom__';
+    if (input) { input.style.display = ''; input.value = value; }
+  }
+}
+
+function getLobbyComboValue(field) {
+  const sel   = document.getElementById(`ch-${field}-sel`);
+  const input = document.getElementById(`ch-${field}`);
+  if (!sel) return '';
+  if (input && input.style.display !== 'none') return input.value.trim();
+  if (sel.value === '__custom__') return input ? input.value.trim() : '';
+  return sel.value;
+}
+
+const SKILLS_DEF = [
+  {name:'Acrobaties',     attr:'dex'},{name:'Arcanes',       attr:'int'},
+  {name:'Athlétisme',    attr:'str'},{name:'Discrétion',    attr:'dex'},
+  {name:'Dressage',       attr:'wis'},{name:'Escamotage',   attr:'dex'},
+  {name:'Histoire',       attr:'int'},{name:'Intimidation', attr:'cha'},
+  {name:'Investigation',  attr:'int'},{name:'Médecine',     attr:'wis'},
+  {name:'Nature',         attr:'int'},{name:'Perception',   attr:'wis'},
+  {name:'Perspicacité',  attr:'wis'},{name:'Persuasion',   attr:'cha'},
+  {name:'Religion',       attr:'int'},{name:'Représentation',attr:'cha'},
+  {name:'Survie',         attr:'wis'},{name:'Tromperie',    attr:'cha'},
+];
+
+let currentCampaignId = null;
+let currentCampaignRole = 'player';
+let editingCharId = null;
+let inventoryItems = [];
+let spellItems = [];
+
+// ── Auth ────────────────────────────────────────────────────────
+(async () => {
+  const token = getToken();
+  if (!token) { window.location.href = '/'; return; }
+  try {
+    const user = await API.auth.me();
+    setUser(user);
+    document.getElementById('userName').textContent = user.username;
+    const av = document.getElementById('userAvatar');
+    if (user.avatar_url) { av.innerHTML = `<img src="${user.avatar_url}" alt="${user.username}"/>`; }
+    else { av.textContent = user.username[0].toUpperCase(); }
+    if (user.is_admin) {
+      document.getElementById('adminLink').style.display = '';
+      document.getElementById('adminSep').style.display = '';
+    }
+  } catch { clearToken(); window.location.href = '/'; }
+})();
+function logout() { clearToken(); window.location.href = '/'; }
+
+// ── Dropdown header ────────────────────────────────────────────
+function toggleDropdown() {
+  const menu = document.getElementById('dropdownMenu');
+  const chevron = document.getElementById('chevronIcon');
+  menu.classList.toggle('open');
+  chevron.style.transform = menu.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+document.addEventListener('click', e => {
+  const dd = document.getElementById('userDropdown');
+  if (dd && !dd.contains(e.target)) {
+    document.getElementById('dropdownMenu').classList.remove('open');
+    document.getElementById('chevronIcon').style.transform = '';
+  }
+});
+
+// ── Modals génériques ──────────────────────────────────────────
+function openModal(id) { document.getElementById(`modal-${id}`).classList.add('open'); }
+function closeModal(id) { document.getElementById(`modal-${id}`).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m =>
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); })
+);
+
+// ── Charger les campagnes ──────────────────────────────────────
+async function loadCampaigns() {
+  try {
+    const camps = await API.campaigns.list();
+    renderCampsList(camps);
+  } catch (err) {
+    document.getElementById('campsList').innerHTML = `<div class="empty-camps">${err.message}</div>`;
+  }
+}
+
+function renderCampsList(camps) {
+  const el = document.getElementById('campsList');
+  if (!camps.length) {
+    el.innerHTML = `<div class="empty-camps">Aucune campagne.<br><br>Crée ou rejoins-en une !</div>`;
+    return;
+  }
+  el.innerHTML = camps.map(c => `
+    <div class="camp-item" id="camp-item-${c.id}" onclick="selectCampaign('${c.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;">
+        <div class="camp-item-name" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(c.name)}</div>
+        <div style="display:flex;align-items:center;gap:.3rem;flex-shrink:0;">
+          ${c.role==='gm' ? `<a href="/campaign-settings.html?campaign=${c.id}" onclick="event.stopPropagation()" title="Réglages de la campagne" style="background:none;border:1px solid var(--border);color:var(--text2);padding:.15rem .45rem;border-radius:5px;font-size:.7rem;text-decoration:none;transition:.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">⚙</a>` : ''}
+          <span class="role-badge role-${c.role}">${c.role==='gm'?'👑 MJ':'⚔'}</span>
+        </div>
+      </div>
+      <div class="camp-item-meta">
+        <span>${esc(c.system)}</span>
+        <span>· ${c.member_count} membre${c.member_count>1?'s':''}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ── Sélectionner une campagne ──────────────────────────────────
+async function selectCampaign(id) {
+  document.querySelectorAll('.camp-item').forEach(el => el.classList.remove('active'));
+  document.getElementById(`camp-item-${id}`)?.classList.add('active');
+  currentCampaignId = id;
+  document.getElementById('detailCol').innerHTML = `<div class="loader" style="padding:3rem;text-align:center"><div class="spinner"></div></div>`;
+
+  try {
+    const camp = await API.campaigns.get(id);
+    renderCampaignDetail(camp);
+  } catch (err) {
+    document.getElementById('detailCol').innerHTML = `<div class="detail-empty"><div class="icon">⚠️</div><p>${err.message}</p></div>`;
+  }
+}
+
+function renderCampaignDetail(camp) {
+  const isGM = camp.role === 'gm';
+  currentCampaignRole = camp.role || 'player';
+  const myUser = getUser();
+  const myChars = camp.characters.filter(c => isGM || c.user_id === myUser.id);
+
+  document.getElementById('detailCol').innerHTML = `
+  <div class="detail-wrap">
+    <div class="detail-header">
+      <div>
+        <div class="detail-title">${esc(camp.name)}</div>
+        <div class="detail-system">${esc(camp.system)} · <span class="role-badge role-${camp.role}">${camp.role==='gm'?'👑 Maître du jeu':'⚔ Joueur'}</span></div>
+        ${camp.description ? `<div class="detail-desc">${esc(camp.description)}</div>` : ''}
+      </div>
+      ${isGM ? `<span style="font-family:monospace;font-size:.8rem;background:var(--surface2);border:1px solid var(--border);padding:.3rem .7rem;border-radius:6px;color:var(--text2);white-space:nowrap">Code : ${camp.invite_code}</span>` : ''}
+    </div>
+
+    <div class="section">
+      <div class="section-title">Membres (${camp.members.length})</div>
+      <div class="members-row">
+        ${camp.members.map(m => `
+          <div class="member-chip">
+            <div class="member-av">${m.username[0].toUpperCase()}</div>
+            <span>${esc(m.username)}</span>
+            ${m.role==='gm' ? '<span class="gm-star">👑</span>' : ''}
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        Personnages (${myChars.length})
+        <button class="btn-xs btn-primary" onclick="openCharModal(null)">＋ Nouveau</button>
+      </div>
+      <div class="chars-grid" id="charsGrid">
+        ${myChars.map(c => renderCharCard(c, isGM || c.user_id === myUser.id)).join('')}
+        <div class="char-add-card" onclick="openCharModal(null)">
+          <div class="plus">＋</div>
+          <span>Nouveau personnage</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="enter-game-bar">
+    <div style="flex:1;font-size:.85rem;color:var(--text2)">
+      ${myChars.length ? `${myChars.length} personnage${myChars.length>1?'s':''} prêt${myChars.length>1?'s':''}` : 'Crée un personnage pour jouer'}
+    </div>
+    <button class="btn btn-primary" onclick="enterGame('${camp.id}')">⚔ Entrer dans la partie →</button>
+  </div>`;
+}
+
+function renderCharCard(c, canEdit) {
+  const portrait = c.portrait_url
+    ? `<img src="${esc(c.portrait_url)}" alt="${esc(c.name)}" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+    : '';
+  const stats = c.stats || {};
+  return `
+  <div class="char-card">
+    <div class="char-portrait">${portrait}<span style="${c.portrait_url?'display:none':''}display:flex;align-items:center;justify-content:center;width:100%;height:100%">🧙</span></div>
+    <div class="char-card-name">${esc(c.name)}</div>
+    <div class="char-card-sub">${[c.race, c.class, c.level ? `Niv. ${c.level}` : ''].filter(Boolean).join(' · ')}</div>
+    <div class="char-card-stats">
+      <span class="char-stat-pill">❤ ${c.hp_current}/${c.hp_max}</span>
+      <span class="char-stat-pill">🛡 ${c.ac}</span>
+    </div>
+    ${canEdit ? `<div class="char-actions">
+      <button class="btn-xs btn-secondary" onclick="event.stopPropagation();openCharModal('${c.id}')">✏ Éditer</button>
+      <button class="btn-xs btn-danger" onclick="event.stopPropagation();deleteChar('${c.id}')">🗑</button>
+    </div>` : ''}
+  </div>`;
+}
+
+function enterGame(id) { window.location.href = `/game.html?campaign=${id}`; }
+
+// ── Fiche personnage ──────────────────────────────────────────
+function buildStatsGrid() {
+  document.getElementById('statsGrid').innerHTML = STATS.map(s => `
+    <div class="stat-box">
+      <label>${s.label}</label>
+      <input type="number" id="stat-${s.key}" value="10" min="1" max="30" oninput="updateMod('${s.key}')"/>
+      <div class="stat-mod" id="mod-${s.key}">+0</div>
+    </div>`).join('');
+}
+
+function buildSkillsGrid() {
+  document.getElementById('skillsGrid').innerHTML = SKILLS_DEF.map(sk => `
+    <label class="skill-row">
+      <input type="checkbox" id="skill-${sk.name}" value="${sk.name}"/>
+      <span>${sk.name}</span>
+      <span class="skill-attr">${sk.attr.toUpperCase()}</span>
+    </label>`).join('');
+}
+
+function updateMod(key) {
+  const val = parseInt(document.getElementById(`stat-${key}`).value) || 10;
+  const mod = Math.floor((val - 10) / 2);
+  document.getElementById(`mod-${key}`).textContent = (mod >= 0 ? '+' : '') + mod;
+}
+
+function updateAllMods() { STATS.forEach(s => updateMod(s.key)); }
+
+function switchCharTab(tab) {
+  document.querySelectorAll('#charTabs .tab').forEach((t, i) => {
+    const tabs = ['identity','stats','skills','inventory','spells','notes'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${tab}`)?.classList.add('active');
+  // Auto-focus le champ de saisie selon l'onglet
+  if (tab === 'inventory') setTimeout(() => document.getElementById('inv-input')?.focus(), 50);
+}
+
+function openCharModal(charId) {
+  editingCharId = charId;
+  inventoryItems = [];
+  spellItems = [];
+  buildStatsGrid();
+  buildSkillsGrid();
+  switchCharTab('identity');
+
+  const title = charId ? 'Éditer le personnage' : 'Nouveau personnage';
+  document.getElementById('char-modal-title').textContent = title;
+  document.getElementById('char-alert').style.display = 'none';
+
+  // Initialize combos (reset + build options)
+  buildLobbyComboOptions('ch-race-sel',  LOBBY_RACES,   '');
+  buildLobbyComboOptions('ch-class-sel', LOBBY_CLASSES, '');
+  // Reset
+  ['name','portrait'].forEach(f => document.getElementById(`ch-${f}`).value = '');
+  document.getElementById('ch-race').value  = '';
+  document.getElementById('ch-class').value = '';
+  document.getElementById('ch-race').style.display  = 'none';
+  document.getElementById('ch-class').style.display = 'none';
+  document.getElementById('ch-level').value = 1;
+  const _lvlInp = document.getElementById('ch-level');
+  const _isPlayer = currentCampaignRole !== 'gm';
+  _lvlInp.readOnly = _isPlayer;
+  _lvlInp.style.opacity = _isPlayer ? '0.55' : '';
+  _lvlInp.style.cursor  = _isPlayer ? 'not-allowed' : '';
+  _lvlInp.title = _isPlayer ? 'Le niveau est géré par le MJ via la montée de niveau' : '';
+  document.getElementById('ch-hp').value = 10;
+  document.getElementById('ch-ac').value = 10;
+  document.getElementById('ch-speed').value = 9;
+  document.getElementById('ch-init').value = 0;
+  document.getElementById('ch-prof').value = 2;
+  document.getElementById('ch-gp').value = 0;
+  document.getElementById('ch-sp').value = 0;
+  document.getElementById('ch-cp').value = 0;
+  document.getElementById('ch-notes').value = '';
+  document.getElementById('portraitPreview').innerHTML = '🧙';
+  renderItemList('inventory');
+  renderItemList('spells');
+
+  if (charId) {
+    // Charger les données existantes
+    API.characters.list(currentCampaignId).then(chars => {
+      const c = chars.find(x => x.id === charId);
+      if (!c) return;
+      document.getElementById('ch-name').value = c.name || '';
+      loadLobbyComboValue('race',  c.race  || '');
+      loadLobbyComboValue('class', c.class || '');
+      document.getElementById('ch-level').value = c.level || 1;
+      document.getElementById('ch-portrait').value = c.portrait_url || '';
+      document.getElementById('ch-hp').value     = c.hp_max || 10;
+      document.getElementById('ch-ac').value     = c.ac || 10;
+      document.getElementById('ch-speed').value  = c.speed || 9;
+      document.getElementById('ch-init').value   = c.initiative || 0;
+      const stats = c.stats || {};
+      STATS.forEach(s => {
+        const inp = document.getElementById(`stat-${s.key}`);
+        if (inp) { inp.value = stats[s.key] || 10; updateMod(s.key); }
+      });
+      const skills = c.skills || {};
+      Object.keys(skills).forEach(sk => {
+        const cb = document.getElementById(`skill-${sk}`);
+        if (cb) cb.checked = true;
+      });
+      // Inventaire : tableau de strings ou objet → normaliser en strings
+      const inv = typeof c.inventory === 'string' ? JSON.parse(c.inventory||'[]') : (c.inventory||[]);
+      inventoryItems = Array.isArray(inv) ? inv.map(s => typeof s === 'string' ? s : (s.name || '')) : [];
+
+      // Sorts : deux formats possibles
+      //   - lobby  : tableau de strings ["Boule de feu", …]
+      //   - game   : { list: [{name,level}, …], slots: {…}, slots_used: {…} }
+      let rawSpells = typeof c.spells === 'string' ? JSON.parse(c.spells||'[]') : (c.spells||[]);
+      if (rawSpells && !Array.isArray(rawSpells) && Array.isArray(rawSpells.list)) {
+        rawSpells = rawSpells.list.map(s =>
+          typeof s === 'string' ? s : (s.level > 0 ? `${s.name} (niv.${s.level})` : s.name)
+        );
+      }
+      spellItems = Array.isArray(rawSpells) ? rawSpells.map(s => typeof s === 'string' ? s : (s.name || '')) : [];
+
+      renderItemList('inventory'); renderItemList('spells');
+      document.getElementById('ch-notes').value = c.notes || '';
+      updatePortraitPreview();
+    }).catch(() => {});
+  }
+
+  openModal('char');
+}
+
+function updatePortraitPreview() {
+  const url = document.getElementById('ch-portrait').value.trim();
+  const preview = document.getElementById('portraitPreview');
+  if (url) {
+    preview.innerHTML = `<img src="${esc(url)}" alt="Portrait" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML='🧙'">`;
+  } else {
+    preview.innerHTML = '🧙';
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('ch-portrait')?.addEventListener('input', updatePortraitPreview);
+});
+
+function addItem(type) {
+  // Garantir que les tableaux sont bien des tableaux
+  if (!Array.isArray(inventoryItems)) inventoryItems = [];
+  if (!Array.isArray(spellItems))     spellItems = [];
+
+  const inputId = type === 'inventory' ? 'inv-input' : 'spell-input';
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) {
+    // Indiquer visuellement que le champ est vide
+    input.focus();
+    input.style.outline = '2px solid var(--accent)';
+    setTimeout(() => { input.style.outline = ''; }, 900);
+    return;
+  }
+  if (type === 'inventory') inventoryItems.push(val);
+  else spellItems.push(val);
+  renderItemList(type);
+  input.value = '';
+  input.focus();
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'inv-input') { e.preventDefault(); addItem('inventory'); }
+});
+
+function removeItem(type, idx) {
+  if (type === 'inventory') inventoryItems.splice(idx, 1);
+  else spellItems.splice(idx, 1);
+  renderItemList(type);
+}
+
+function renderItemList(type) {
+  const items = type === 'inventory' ? inventoryItems : spellItems;
+  const listId = type === 'inventory' ? 'inventoryList' : 'spellList';
+  const el = document.getElementById(listId);
+  if (!el) return;
+  const safeItems = Array.isArray(items) ? items : [];
+  el.innerHTML = safeItems.map((item, i) => `
+    <div class="item-row">
+      <span>${esc(typeof item === 'string' ? item : (item?.name || ''))}</span>
+      <button type="button" class="item-del" onclick="removeItem('${type}', ${i})" title="Supprimer">✕</button>
+    </div>`).join('');
+}
+
+// ── Lobby Spell Picker ──────────────────────────────────────────
+let _lspActiveLvl = -1;
+let _lspActiveClass = '';
+
+function openLobbySpellPicker() {
+  _lspActiveLvl = -1;
+  _lspActiveClass = '';
+  document.getElementById('lspSearch').value = '';
+  buildLobbySpFilters();
+  filterLobbySpells();
+  document.getElementById('lobbySpellPickerOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('lspSearch').focus(), 80);
+}
+
+function closeLobbySpellPicker() {
+  document.getElementById('lobbySpellPickerOverlay').classList.remove('open');
+}
+
+function buildLobbySpFilters() {
+  const c = document.getElementById('lspFilters');
+  c.innerHTML = '';
+  const allLvl = document.createElement('button');
+  allLvl.type = 'button';
+  allLvl.className = 'sp-filter-btn on'; allLvl.textContent = 'Tous niveaux';
+  allLvl.onclick = () => { _lspActiveLvl = -1; refreshLobbySpFilterBtns(); filterLobbySpells(); };
+  c.appendChild(allLvl);
+  for (let l = 0; l <= 9; l++) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'sp-filter-btn';
+    b.textContent = l === 0 ? 'Cantrip' : `Niv ${l}`;
+    b.dataset.lvl = l;
+    b.onclick = () => { _lspActiveLvl = l; refreshLobbySpFilterBtns(); filterLobbySpells(); };
+    c.appendChild(b);
+  }
+  const sep = document.createElement('span');
+  sep.style.cssText = 'width:1px;background:var(--border);height:18px;margin:0 .1rem;';
+  c.appendChild(sep);
+  const allCls = document.createElement('button');
+  allCls.type = 'button';
+  allCls.className = 'sp-filter-btn on'; allCls.textContent = 'Toutes classes';
+  allCls.dataset.cls = '';
+  allCls.onclick = () => { _lspActiveClass = ''; refreshLobbySpFilterBtns(); filterLobbySpells(); };
+  c.appendChild(allCls);
+  const SP_CLASSES = ['B','C','D','E','M','O','P','R'];
+  const SP_CLASS_NAMES = {B:'Barde',C:'Clerc',D:'Druide',E:'Ensorceleur',M:'Magicien',O:'Occultiste',P:'Paladin',R:'Rôdeur'};
+  SP_CLASSES.forEach(cl => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'sp-filter-btn';
+    b.textContent = SP_CLASS_NAMES[cl];
+    b.dataset.cls = cl;
+    b.onclick = () => { _lspActiveClass = cl; refreshLobbySpFilterBtns(); filterLobbySpells(); };
+    c.appendChild(b);
+  });
+  refreshLobbySpFilterBtns();
+}
+
+function refreshLobbySpFilterBtns() {
+  document.querySelectorAll('#lspFilters .sp-filter-btn').forEach(b => {
+    if (b.textContent === 'Tous niveaux') { b.classList.toggle('on', _lspActiveLvl === -1); return; }
+    if (b.textContent === 'Toutes classes') { b.classList.toggle('on', _lspActiveClass === ''); return; }
+    if (b.dataset.lvl !== undefined) b.classList.toggle('on', _lspActiveLvl === parseInt(b.dataset.lvl));
+    if (b.dataset.cls !== undefined) b.classList.toggle('on', _lspActiveClass === b.dataset.cls);
+  });
+}
+
+function filterLobbySpells() {
+  const SP_CLASS_NAMES = {B:'Barde',C:'Clerc',D:'Druide',E:'Ensorceleur',M:'Magicien',O:'Occultiste',P:'Paladin',R:'Rôdeur'};
+  const SP_SCHOOL_NAMES = {Abj:'Abjuration',Invo:'Invocation',Div:'Divination',Ench:'Enchantement',Évoc:'Évocation',Illu:'Illusion',Nécr:'Nécromancie',Tran:'Transmutation'};
+  const q = (document.getElementById('lspSearch').value || '').toLowerCase().trim();
+  const list = document.getElementById('lspList');
+  const results = SPELLS_DB.filter(([name, lvl, school, classes]) => {
+    if (_lspActiveLvl !== -1 && lvl !== _lspActiveLvl) return false;
+    if (_lspActiveClass && !classes.includes(_lspActiveClass)) return false;
+    if (q && !name.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if (!results.length) {
+    list.innerHTML = `<div class="sp-empty">Aucun sort trouvé.<br><span style="font-size:.78rem">Utilisez la saisie manuelle ci-dessous.</span></div>`;
+    if (q) { const mn = document.getElementById('lspManualName'); if (mn) mn.value = q.charAt(0).toUpperCase() + q.slice(1); }
+    return;
+  }
+  list.innerHTML = '';
+  results.slice(0, 120).forEach(([name, lvl, school, classes]) => {
+    const lvlLabel = lvl === 0 ? 'Cntrp' : `Niv ${lvl}`;
+    const classNames = classes.split('').map(c => SP_CLASS_NAMES[c] || c).join(', ');
+    const div = document.createElement('div');
+    div.className = 'sp-item';
+    div.innerHTML = `<span class="sp-item-lvl">${lvlLabel}</span>
+      <span class="sp-item-name">${esc(name)}</span>
+      <span class="sp-item-school">${SP_SCHOOL_NAMES[school] || school}</span>
+      <span class="sp-item-classes">${classNames}</span>`;
+    div.addEventListener('click', () => {
+      const label = lvl === 0 ? `${name} (cantrip)` : `${name} (niv.${lvl})`;
+      if (!Array.isArray(spellItems)) spellItems = [];
+      spellItems.push(label);
+      renderItemList('spells');
+      closeLobbySpellPicker();
+    });
+    list.appendChild(div);
+  });
+}
+
+function addLobbySpellManual() {
+  const nameEl = document.getElementById('lspManualName');
+  const lvlEl  = document.getElementById('lspManualLvl');
+  const name = nameEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+  const lvl = parseInt(lvlEl.value) || 0;
+  const label = lvl === 0 ? `${name} (cantrip)` : `${name} (niv.${lvl})`;
+  if (!Array.isArray(spellItems)) spellItems = [];
+  spellItems.push(label);
+  renderItemList('spells');
+  nameEl.value = '';
+  closeLobbySpellPicker();
+}
+
+async function saveCharacter() {
+  const name = document.getElementById('ch-name').value.trim();
+  if (!name) {
+    document.getElementById('char-alert').textContent = 'Le nom est obligatoire';
+    document.getElementById('char-alert').style.display = 'block';
+    switchCharTab('identity');
+    return;
+  }
+
+  const stats = {};
+  STATS.forEach(s => { stats[s.key] = parseInt(document.getElementById(`stat-${s.key}`)?.value) || 10; });
+
+  const skills = {};
+  SKILLS_DEF.forEach(sk => {
+    if (document.getElementById(`skill-${sk.name}`)?.checked) skills[sk.name] = true;
+  });
+
+  const payload = {
+    name,
+    race:        getLobbyComboValue('race')  || null,
+    class:       getLobbyComboValue('class') || null,
+    level:       parseInt(document.getElementById('ch-level').value) || 1,
+    hp_max:      parseInt(document.getElementById('ch-hp').value) || 10,
+    hp_current:  parseInt(document.getElementById('ch-hp').value) || 10,
+    ac:          parseInt(document.getElementById('ch-ac').value) || 10,
+    speed:       parseInt(document.getElementById('ch-speed').value) || 9,
+    initiative:  parseInt(document.getElementById('ch-init').value) || 0,
+    stats, skills,
+    inventory:   inventoryItems,
+    spells:      spellItems,
+    notes:       document.getElementById('ch-notes').value.trim() || null,
+    portrait_url: document.getElementById('ch-portrait').value.trim() || null,
+  };
+
+  const btn = document.getElementById('btn-save-char');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  document.getElementById('char-alert').style.display = 'none';
+
+  try {
+    if (editingCharId) {
+      await API.characters.update(currentCampaignId, editingCharId, payload);
+    } else {
+      await API.characters.create(currentCampaignId, payload);
+    }
+    closeModal('char');
+    await selectCampaign(currentCampaignId); // Rafraîchir
+  } catch (err) {
+    document.getElementById('char-alert').textContent = err.message;
+    document.getElementById('char-alert').style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Enregistrer';
+}
+
+async function deleteChar(charId) {
+  if (!confirm('Supprimer ce personnage ? Cette action est irréversible.')) return;
+  try {
+    await API.characters.delete(currentCampaignId, charId);
+    await selectCampaign(currentCampaignId);
+  } catch (err) { alert(err.message); }
+}
+
+// ── Créer campagne ─────────────────────────────────────────────
+async function doCreate(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-create');
+  const alertEl = document.getElementById('create-alert');
+  alertEl.style.display = 'none'; btn.disabled = true; btn.textContent = 'Création…';
+  try {
+    const camp = await API.campaigns.create({
+      name: document.getElementById('c-name').value,
+      system: document.getElementById('c-system').value,
+      description: document.getElementById('c-desc').value,
+    });
+    closeModal('create');
+    document.getElementById('c-name').value = '';
+    document.getElementById('c-desc').value = '';
+    await loadCampaigns();
+    selectCampaign(camp.id);
+  } catch (err) { alertEl.textContent = err.message; alertEl.style.display = 'block'; }
+  btn.disabled = false; btn.textContent = 'Créer';
+}
+
+// ── Rejoindre campagne ─────────────────────────────────────────
+async function doJoin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-join');
+  const alertEl = document.getElementById('join-alert');
+  alertEl.style.display = 'none'; btn.disabled = true; btn.textContent = 'Connexion…';
+  try {
+    const camp = await API.campaigns.join(document.getElementById('j-code').value);
+    closeModal('join');
+    document.getElementById('j-code').value = '';
+    await loadCampaigns();
+    selectCampaign(camp.id);
+  } catch (err) { alertEl.textContent = err.message; alertEl.style.display = 'block'; }
+  btn.disabled = false; btn.textContent = 'Rejoindre';
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Upload image générique ──────────────────────────────────────
+async function uploadImage(fileInput, urlFieldId, onDone) {
+  const file = fileInput.files[0];
+  if (!file) return;
+  const label = fileInput.previousElementSibling; // le <label> bouton
+  label.textContent = '⏳';
+  label.classList.add('loading');
+  try {
+    const { url } = await API.upload(file);
+    document.getElementById(urlFieldId).value = url;
+    if (onDone) onDone();
+  } catch (err) {
+    alert('Upload échoué : ' + err.message);
+  } finally {
+    label.textContent = '📎';
+    label.classList.remove('loading');
+    fileInput.value = '';
+  }
+}
+
+loadCampaigns();
+
+// ── Code d'invitation personnel ────────────────────────────
+function showInviteCode() {
+  const user = getUser();
+  if (!user?.invite_code) {
+    // Rafraîchir depuis l'API au cas où
+    API.auth.me().then(u => {
+      setUser(u);
+      _showInviteModal(u.invite_code);
+    }).catch(() => alert('Impossible de récupérer votre code.'));
+    return;
+  }
+  _showInviteModal(user.invite_code);
+}
+function _showInviteModal(code) {
+  document.getElementById('myInviteCode').textContent = code || '—';
+  document.getElementById('modal-invite').classList.add('open');
+}
+function copyInviteCode() {
+  const code = document.getElementById('myInviteCode').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('btnCopyInvite');
+    btn.textContent = '✓ Copié !';
+    setTimeout(() => btn.textContent = '📋 Copier', 2000);
+  });
+}
+</script>
+
+<!-- Modal : mon code d'invitation -->
+<div class="modal-overlay" id="modal-invite" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:400px;text-align:center;">
+    <div class="modal-header">
+      <h3 class="modal-title">🎟 Mon code d'invitation</h3>
+      <button class="modal-close" onclick="document.getElementById('modal-invite').classList.remove('open')">✕</button>
+    </div>
+    <div style="padding:1.5rem 1.5rem .8rem;">
+      <p style="font-size:.85rem;color:var(--text2);margin-bottom:1.2rem;">Partagez ce code pour permettre à quelqu'un de créer un compte.</p>
+      <div style="display:flex;align-items:center;justify-content:center;gap:.8rem;margin-bottom:1.2rem;">
+        <span id="myInviteCode" style="font-family:monospace;font-size:1.8rem;font-weight:700;color:var(--accent);letter-spacing:.2em;background:var(--surface2);padding:.5rem 1.2rem;border-radius:10px;border:1px solid var(--border);">—</span>
+        <button id="btnCopyInvite" class="btn btn-secondary" onclick="copyInviteCode()" style="padding:.45rem .9rem;font-size:.83rem;">📋 Copier</button>
+      </div>
+      <p style="font-size:.75rem;color:var(--text2);">Ce code est unique et permanent. Ne le partagez qu'avec des personnes de confiance.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,70 @@
+services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d:ro
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - rpg
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    restart: "no"
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    command: renew --quiet
+
+  rpg-db:
+    image: postgres:15-alpine
+    container_name: rpg-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: rpg
+      POSTGRES_USER: rpg
+      POSTGRES_PASSWORD: "${RPG_DB_PASSWORD}"
+    volumes:
+      - rpg-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rpg"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rpg:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: rpg-backend:latest
+    container_name: rpg
+    restart: unless-stopped
+    depends_on:
+      rpg-db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://rpg:${RPG_DB_PASSWORD}@rpg-db:5432/rpg"
+      JWT_SECRET: "${JWT_SECRET}"
+      PORT: "3001"
+      ALLOWED_ORIGIN: "https://${DOMAIN}"
+      UPLOAD_DIR: "/app/uploads"
+    volumes:
+      - ./frontend/uploads:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/rpg/api/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  rpg-db:
+  nginx-logs:
