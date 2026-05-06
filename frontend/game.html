@@ -1921,13 +1921,8 @@ async function loadCampaign() {
       // Les joueurs n'ont pas la carte : masquer la zone carte
       const mapArea = document.getElementById('mapArea');
       if (mapArea) mapArea.style.display = 'none';
-      // Ajuster le layout : les sidebars prennent toute la place
-      const sideLeft = document.querySelector('.sidebar-left');
-      const sideRight = document.querySelector('.sidebar-right');
-      if (sideLeft) sideLeft.style.width = '';
-      if (sideLeft) sideLeft.style.flex = '1';
-      if (sideRight) sideRight.style.width = '';
-      if (sideRight) sideRight.style.flex = '1';
+      // Les sidebars gardent leur largeur d'origine (280px)
+      // L'espace du milieu reste vide
     }
   }
 
