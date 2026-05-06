@@ -841,6 +841,18 @@ input:focus{border-color:var(--accent);}
 .lvlup-toast.success{border-color:rgba(34,197,94,.4);}
 .lvlup-toast.error{border-color:rgba(239,68,68,.4);}
 </style>
+/* ── Mode écran central (display) ── */
+body.display-mode header{display:none !important;}
+body.display-mode .sidebar-left{display:none !important;}
+body.display-mode .sidebar-right{display:none !important;}
+body.display-mode .game-layout{display:block;}
+body.display-mode .map-area{position:fixed;inset:0;z-index:10;}
+body.display-mode .map-toolbar{opacity:.3;transition:.3s;}
+body.display-mode .map-toolbar:hover{opacity:1;}
+body.display-mode .map-info{opacity:.3;}
+body.display-mode .map-info:hover{opacity:1;}
+body.display-mode #weatherCanvas{position:fixed;inset:0;pointer-events:none;z-index:5;}
+</style>
 </head>
 <body>
 
@@ -1832,11 +1844,15 @@ input:focus{border-color:var(--accent);}
 // ── State ────────────────────────────────────────────────────
 const params = new URLSearchParams(location.search);
 const CAMPAIGN_ID = params.get('campaign');
+const DISPLAY_MODE = params.get('mode') === 'display';
 let socket, campaign, myChars = [], myRole = 'player';
 let activeChar = null;
 let onlineUsers = {};
 let allCampaignMembers = [];
 let hpDisplay = { pc_mode: 'bar', npc_mode: 'none', threshold_high: 70, threshold_low: 30 };
+
+// ── Mode affichage central ──
+if (DISPLAY_MODE) document.body.classList.add('display-mode');
 
 // ── Auth guard ───────────────────────────────────────────────
 (async () => {
@@ -1880,6 +1896,50 @@ async function loadCampaign() {
   allCampaignMembers = campaign.members || [];
   myChars = campaign.characters.filter(c => myRole === 'gm' || c.user_id === getUser().id);
   populateCharSelectors();
+
+  // ── Mode map unique : les joueurs ne voient pas la carte ──
+  const displayMode = campaign.settings?.display_mode || 'normal';
+  if (displayMode === 'map_unique' && !DISPLAY_MODE) {
+    if (myRole === 'gm') {
+      // Le MJ voit la carte normalement + lien vers l'écran central
+      const displayUrl = `${location.origin}${location.pathname}?campaign=${CAMPAIGN_ID}&mode=display`;
+      const header = document.querySelector('header');
+      const link = document.createElement('a');
+      link.className = 'btn-icon';
+      link.href = displayUrl;
+      link.target = '_blank';
+      link.title = 'Ouvrir l\'écran central (carte seule)';
+      link.textContent = '🖥 Carte';
+      link.style.background = 'rgba(201,162,39,.15)';
+      link.style.borderColor = 'var(--accent)';
+      link.style.color = 'var(--accent)';
+      // Insérer avant le bouton "← Lobby"
+      const lobbyBtn = header.querySelector('button:last-of-type') || header.lastElementChild;
+      header.insertBefore(link, lobbyBtn);
+    } else {
+      // Les joueurs n'ont pas la carte : masquer la zone carte
+      const mapArea = document.getElementById('mapArea');
+      if (mapArea) mapArea.style.display = 'none';
+      // Ajuster le layout : les sidebars prennent toute la place
+      const sideLeft = document.querySelector('.sidebar-left');
+      const sideRight = document.querySelector('.sidebar-right');
+      if (sideLeft) sideLeft.style.width = '';
+      if (sideLeft) sideLeft.style.flex = '1';
+      if (sideRight) sideRight.style.width = '';
+      if (sideRight) sideRight.style.flex = '1';
+    }
+  }
+
+  if (DISPLAY_MODE) {
+    // Mode écran central : pas besoin des sidebars ni du chargement des personnages
+    document.querySelector('.sidebar-left')?.remove();
+    document.querySelector('.sidebar-right')?.remove();
+    // La carte prend tout l'écran (géré par CSS .display-mode)
+    initCanvas();
+    // Ne pas appeler connectSocket() ici — ce sera fait après loadCampaign()
+    return;
+  }
+
   initCanvas();
   loadMacros();
   loadHandouts();

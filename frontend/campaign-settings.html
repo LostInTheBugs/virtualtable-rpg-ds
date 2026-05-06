@@ -141,6 +141,7 @@ function render() {
   const s = campaign.settings || {};
   const hp = s.hp_display || { pc_mode:'bar', npc_mode:'none', threshold_high:70, threshold_low:30 };
   const vm = s.vision_mode || 'all';
+  const dm = s.display_mode || 'normal';
 
   document.getElementById('pageContent').innerHTML = `
   <!-- Informations générales -->
@@ -196,6 +197,29 @@ function render() {
         <input type="radio" name="vision" id="vm-none" value="none" ${vm==='none'?'checked':''}>
         <label for="vm-none">🌑 Rien visible</label>
       </div>
+    </div>
+  </div>
+
+  <!-- Mode d'affichage -->
+  <div class="section">
+    <div class="section-title">🖥 Mode d'affichage</div>
+    <div class="hint" style="margin-bottom:.9rem;">
+      <strong>Normal</strong> — chaque joueur voit la carte sur son écran.<br>
+      <strong>Map unique</strong> — les joueurs voient uniquement la fiche perso et le chat ;
+      la carte s'affiche sur un écran central dédié.
+    </div>
+    <div class="radio-group">
+      <div class="radio-pill">
+        <input type="radio" name="display" id="dm-normal" value="normal" ${dm==='normal'?'checked':''}>
+        <label for="dm-normal">📋 Normal</label>
+      </div>
+      <div class="radio-pill">
+        <input type="radio" name="display" id="dm-map_unique" value="map_unique" ${dm==='map_unique'?'checked':''}>
+        <label for="dm-map_unique">🖥 Map unique</label>
+      </div>
+    </div>
+    <div id="displayModeHint" style="margin-top:.6rem;padding:.5rem .7rem;background:rgba(201,162,39,.08);border-radius:8px;font-size:.78rem;color:var(--text2);${dm==='map_unique'?'':'display:none'}">
+      💡 Les joueurs verront un bouton <strong>🖥 Carte</strong> dans le lobby pour ouvrir l'écran central.
     </div>
   </div>
 
@@ -256,6 +280,13 @@ function render() {
   </div>
   `;
   updateBarPreview();
+  // Afficher/masquer l'aide en fonction du mode d'affichage
+  document.querySelectorAll('input[name="display"]').forEach(el => {
+    el.addEventListener('change', () => {
+      const hint = document.getElementById('displayModeHint');
+      if (hint) hint.style.display = document.querySelector('input[name="display"]:checked')?.value === 'map_unique' ? '' : 'none';
+    });
+  });
 }
 
 function updateBarPreview() {
@@ -302,11 +333,12 @@ async function saveSettings() {
   const btn = document.getElementById('btnSave');
   btn.disabled = true;
 
-  const visionMode = document.querySelector('input[name="vision"]:checked')?.value || 'all';
-  const pcMode     = document.querySelector('input[name="hp-pc"]:checked')?.value  || 'bar';
-  const npcMode    = document.querySelector('input[name="hp-npc"]:checked')?.value || 'none';
-  const thrHigh    = parseInt(document.getElementById('thr-high')?.value)  || 70;
-  const thrLow     = parseInt(document.getElementById('thr-low')?.value)   || 30;
+  const visionMode  = document.querySelector('input[name="vision"]:checked')?.value || 'all';
+  const pcMode      = document.querySelector('input[name="hp-pc"]:checked')?.value  || 'bar';
+  const npcMode     = document.querySelector('input[name="hp-npc"]:checked')?.value || 'none';
+  const thrHigh     = parseInt(document.getElementById('thr-high')?.value)  || 70;
+  const thrLow      = parseInt(document.getElementById('thr-low')?.value)   || 30;
+  const displayMode = document.querySelector('input[name="display"]:checked')?.value || 'normal';
 
   const payload = {
     name:        document.getElementById('inp-name')?.value?.trim()   || campaign.name,
@@ -315,6 +347,7 @@ async function saveSettings() {
     settings: {
       vision_mode: visionMode,
       hp_display: { pc_mode: pcMode, npc_mode: npcMode, threshold_high: thrHigh, threshold_low: thrLow },
+      display_mode: displayMode,
     },
   };
 

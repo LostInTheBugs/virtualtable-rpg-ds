@@ -680,6 +680,9 @@ function renderCampaignDetail(camp) {
     <div style="flex:1;font-size:.85rem;color:var(--text2)">
       ${myChars.length ? `${myChars.length} personnage${myChars.length>1?'s':''} prêt${myChars.length>1?'s':''}` : 'Crée un personnage pour jouer'}
     </div>
+    ${(camp.settings?.display_mode === 'map_unique') ? `
+      <button class="btn btn-secondary" onclick="window.open('/game.html?campaign=${camp.id}&mode=display','_blank')" style="background:rgba(139,92,246,.15);border-color:var(--accent2);color:var(--accent2);">🖥 Carte</button>
+    ` : ''}
     <button class="btn btn-primary" onclick="enterGame('${camp.id}')">⚔ Entrer dans la partie →</button>
   </div>`;
 }
