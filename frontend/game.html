@@ -846,13 +846,13 @@ body.display-mode .sidebar-left{display:none !important;}
 body.display-mode .sidebar-right{display:none !important;}
 body.display-mode .game-layout{display:block;}
 body.display-mode .map-area{position:fixed;inset:0;z-index:10;}
-body.display-mode .map-toolbar{opacity:.3;transition:.3s;}
-body.display-mode .map-toolbar:hover{opacity:1;}
+body.display-mode .map-toolbar{opacity:0;transition:opacity .3s;pointer-events:none;}
+body.display-mode .map-area:hover .map-toolbar,
+body.display-mode .map-toolbar:hover{opacity:.8;pointer-events:all;}
 body.display-mode .map-info{opacity:.3;}
 body.display-mode .map-info:hover{opacity:1;}
 body.display-mode #weatherCanvas{position:fixed;inset:0;pointer-events:none;z-index:5;}
 body.display-mode #mapCanvas{display:block;width:100%;height:100%;}
-body.display-mode #mapArea .map-toolbar{bottom:0;}
 </style>
 </head>
 <body>
