@@ -202,3 +202,9 @@ CREATE TABLE IF NOT EXISTS level_up_requests (
 CREATE INDEX IF NOT EXISTS idx_level_up_campaign ON level_up_requests(campaign_id, status);
 ALTER TABLE characters ADD COLUMN IF NOT EXISTS saving_throws JSONB DEFAULT '{}';
 ALTER TABLE characters ADD COLUMN IF NOT EXISTS body_weight NUMERIC(6,2) DEFAULT 0;
+
+-- ── Colonnes sécurité auth ────────────────────────────────────
+ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_attempts INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;

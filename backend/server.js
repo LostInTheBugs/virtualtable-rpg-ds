@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
+app.set('trust proxy', 1); // Apache proxy — nécessaire pour express-rate-limit
 const server = http.createServer(app);
 
 // ── Socket.io ────────────────────────────────────────────────
