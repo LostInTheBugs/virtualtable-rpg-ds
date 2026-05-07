@@ -2524,8 +2524,8 @@ function connectSocket() {
       drawMap();
     }
     if (tokens) { gameTokens = tokens; drawMap(); }
-    // Auto-sélectionner le premier personnage si aucun n'est encore actif
-    if (!activeChar && myChars.length > 0) {
+    // Auto-sélectionner le premier personnage si aucun n'est encore actif (sauf display mode)
+    if (!DISPLAY_MODE && !activeChar && myChars.length > 0) {
       const sel = document.getElementById('charSelector');
       if (sel) { sel.value = myChars[0].id; selectChar(myChars[0].id); }
     }
@@ -2550,7 +2550,8 @@ function connectSocket() {
     } else {
       showDiceAnimation(data);
     }
-    document.getElementById('lastRollResult').innerHTML =
+    const resultEl = document.getElementById('lastRollResult');
+    if (resultEl) resultEl.innerHTML =
       `<strong style="color:var(--accent)">${data.character_name}</strong> → ${data.dice} = <strong>${data.total}</strong>`;
   });
 
@@ -3639,7 +3640,9 @@ function showDiceAnimation({ dice, rolls, total, character_name, label }) {
     else if (rolls[0] === 1) resultEl.classList.add('fumble');
   }
 
-  document.getElementById('diceLabel').textContent = `${character_name} — ${dice}${document.getElementById('diceModifier').value > 0 ? '+' + document.getElementById('diceModifier').value : ''}`;
+  const modEl = document.getElementById('diceModifier');
+  const modVal = modEl ? (parseInt(modEl.value) || 0) : 0;
+  document.getElementById('diceLabel').textContent = `${character_name} — ${dice}${modVal > 0 ? '+' + modVal : ''}`;
 
   // Sparks
   const overlay = document.getElementById('diceAnimOverlay');
