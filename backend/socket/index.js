@@ -458,6 +458,49 @@ module.exports = function setupSocket(io) {
       });
     });
 
+    // ── DESSIN SUR LA CARTE ──────────────────────────────────
+    socket.on('draw_stroke', async ({ campaign_id, map_id, stroke }) => {
+      if (!socket.user) return;
+      // Charger les drawings existants depuis la DB
+      try {
+        const res = await db.query('SELECT drawings FROM maps WHERE id = $1', [map_id]);
+        if (!res.rows[0]) return;
+        let drawings = res.rows[0].drawings || [];
+        if (typeof drawings === 'string') drawings = JSON.parse(drawings);
+        drawings.push(stroke);
+        await db.query('UPDATE maps SET drawings = $1 WHERE id = $2', [JSON.stringify(drawings), map_id]);
+        socket.to(campaign_id).emit('draw_stroke', { stroke });
+      } catch (err) {
+        console.error('[WS] draw_stroke error:', err);
+      }
+    });
+
+    socket.on('draw_undo', async ({ campaign_id, map_id }) => {
+      if (!socket.user) return;
+      try {
+        const res = await db.query('SELECT drawings FROM maps WHERE id = $1', [map_id]);
+        if (!res.rows[0]) return;
+        let drawings = res.rows[0].drawings || [];
+        if (typeof drawings === 'string') drawings = JSON.parse(drawings);
+        if (drawings.length === 0) return;
+        const removed = drawings.pop();
+        await db.query('UPDATE maps SET drawings = $1 WHERE id = $2', [JSON.stringify(drawings), map_id]);
+        socket.to(campaign_id).emit('draw_undo', { removed });
+      } catch (err) {
+        console.error('[WS] draw_undo error:', err);
+      }
+    });
+
+    socket.on('draw_clear', async ({ campaign_id, map_id }) => {
+      if (!socket.user) return;
+      try {
+        await db.query('UPDATE maps SET drawings = $1 WHERE id = $2', ['[]', map_id]);
+        socket.to(campaign_id).emit('draw_clear', {});
+      } catch (err) {
+        console.error('[WS] draw_clear error:', err);
+      }
+    });
+
     // ── HANDOUTS (broadcast partage) ─────────────────────────
     socket.on('handout_share_broadcast', ({ campaign_id, handout }) => {
       if (socket.role !== 'gm') return;

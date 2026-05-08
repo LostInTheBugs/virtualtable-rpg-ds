@@ -572,6 +572,11 @@ body.pf2e-campaign .dnd5e-label{font-size:0;}
 .zone-clear-btn{background:none;border:1px solid transparent;color:var(--text2);padding:.25rem .4rem;border-radius:6px;cursor:pointer;font-size:.75rem;transition:.2s;}
 .zone-clear-btn:hover{border-color:var(--danger);color:var(--danger);}
 
+/* Dessin */
+.draw-subtoolbar{display:flex;align-items:center;padding:.2rem .4rem;background:rgba(22,22,31,.85);border:1px solid var(--border);border-radius:8px;}
+.draw-color-btn{width:16px;height:16px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;transition:.15s;flex-shrink:0;vertical-align:middle;}
+.draw-color-btn:hover{border-color:var(--accent);transform:scale(1.2);}
+
 /* Dé animé overlay */
 .dice-anim-overlay{position:fixed;inset:0;z-index:200;pointer-events:none;display:flex;align-items:center;justify-content:center;}
 .dice-anim{display:none;flex-direction:column;align-items:center;gap:.5rem;}
@@ -974,6 +979,7 @@ body.display-mode #mapCanvas{display:block;width:100%;height:100%;}
       <button class="tool-btn active" id="tool-select" onclick="setTool('select')" title="Sélectionner">↖ Select</button>
       <button class="tool-btn" id="tool-measure" onclick="setTool('measure')" title="Mesurer distance">📏 Mesure</button>
       <button class="tool-btn" id="tool-zones" onclick="setTool('zones')" title="Zones de sorts (cercle, cône, ligne)">🔮 Zones</button>
+      <button class="tool-btn" id="tool-draw" onclick="setTool('draw')" title="Dessiner & annoter (touche D)">✏ Draw</button>
       <button class="tool-btn" id="tool-fog" onclick="setTool('fog')" title="Peindre le brouillard" style="display:none">🌫️</button>
       <button class="tool-btn" id="tool-walls" onclick="setTool('walls')" title="Dessiner des murs (bloque la vision)" style="display:none">🧱 Murs</button>
       <button class="tool-btn" id="tool-objects" onclick="setTool('objects')" title="Placer des objets sur la carte" style="display:none">📦 Objets</button>
@@ -1001,6 +1007,21 @@ body.display-mode #mapCanvas{display:block;width:100%;height:100%;}
       <div class="zone-color-dot"        id="zc-5" style="background:#e2e8f0" onclick="setZoneColor(5)" title="Blanc"></div>
       <div class="zone-sep"></div>
       <button class="zone-clear-btn" onclick="clearAllZones()" title="Effacer toutes les zones">🗑 Effacer</button>
+    </div>
+    <!-- Sous-toolbar dessin -->
+    <div class="draw-subtoolbar" id="drawSubtoolbar" style="display:none;margin-top:.4rem;gap:.3rem;flex-wrap:wrap;justify-content:center;">
+      <span style="font-size:.72rem;color:var(--text2);margin-right:.15rem;">Couleur :</span>
+      <button class="draw-color-btn" data-color="#f59e0b" onclick="setDrawColor('#f59e0b')" style="background:#f59e0b" title="Ambre"></button>
+      <button class="draw-color-btn" data-color="#ef4444" onclick="setDrawColor('#ef4444')" style="background:#ef4444" title="Rouge"></button>
+      <button class="draw-color-btn" data-color="#22c55e" onclick="setDrawColor('#22c55e')" style="background:#22c55e" title="Vert"></button>
+      <button class="draw-color-btn" data-color="#3b82f6" onclick="setDrawColor('#3b82f6')" style="background:#3b82f6" title="Bleu"></button>
+      <button class="draw-color-btn" data-color="#a855f7" onclick="setDrawColor('#a855f7')" style="background:#a855f7" title="Violet"></button>
+      <button class="draw-color-btn" data-color="#ffffff" onclick="setDrawColor('#ffffff')" style="background:#fff;border:1px solid #555" title="Blanc"></button>
+      <button class="draw-color-btn" data-color="#000000" onclick="setDrawColor('#000000')" style="background:#000;border:1px solid #555" title="Noir"></button>
+      <span style="font-size:.72rem;color:var(--text2);margin:0 .15rem 0 .4rem;">Trait :</span>
+      <input type="range" min="1" max="12" value="3" oninput="setDrawWidth(+this.value)" style="width:50px;vertical-align:middle;" title="Épaisseur"/>
+      <button class="tool-btn" onclick="undoLastStroke()" title="Annuler dernier trait (Ctrl+Z)" style="font-size:.65rem;padding:.2rem .4rem;">↩ Annuler</button>
+      <button class="tool-btn" onclick="if(confirm('Effacer tous les dessins ?'))clearAllStrokes()" title="Tout effacer" style="font-size:.65rem;padding:.2rem .4rem;color:var(--danger);">🗑 Tout</button>
     </div>
     <div class="map-info" id="mapInfo">Carte — 0,0</div>
 
@@ -2520,6 +2541,11 @@ function connectSocket() {
       currentMap = map;
       mapWalls   = Array.isArray(map.walls)   ? map.walls   : [];
       mapObjects = Array.isArray(map.objects) ? map.objects : [];
+      // Charger les dessins de la nouvelle carte
+      const sd = map.drawings;
+      if (sd && Array.isArray(sd)) drawStrokes = sd;
+      else if (typeof sd === 'string') { try { drawStrokes = JSON.parse(sd) || []; } catch { drawStrokes = []; } }
+      else drawStrokes = [];
       syncLightsFromObjects();
       drawMap();
     }
@@ -3679,6 +3705,7 @@ let cam = { x: 0, y: 0, zoom: 1 };
 let drag = { active: false, startX: 0, startY: 0, camX: 0, camY: 0 };
 let selectedToken = null, draggingToken = false;
 let currentTool = 'select';
+let drawStrokes = [], drawCurrentStroke = null, drawColor = '#f59e0b', drawWidth = 3;
 let showGrid = true;
 
 // ── Zones de sorts ─────────────────────────────────────────────
@@ -3850,6 +3877,13 @@ function initCanvas() {
     currentMap = campaign.maps.find(m => m.is_active) || campaign.maps[0];
     mapWalls   = Array.isArray(currentMap.walls)   ? currentMap.walls   : [];
     mapObjects = Array.isArray(currentMap.objects) ? currentMap.objects : [];
+    // Charger les dessins existants
+    const savedDrawings = currentMap.drawings;
+    if (savedDrawings && Array.isArray(savedDrawings)) {
+      drawStrokes = savedDrawings;
+    } else if (typeof savedDrawings === 'string') {
+      try { drawStrokes = JSON.parse(savedDrawings) || []; } catch { drawStrokes = []; }
+    }
     syncLightsFromObjects();
     // Charger les tokens
     API.maps.tokens(CAMPAIGN_ID, currentMap.id).then(t => { gameTokens = t; drawMap(); }).catch(() => {});
@@ -3942,6 +3976,7 @@ function _renderFrame() {
   drawMeasure();
   drawPathPreview();
   drawPings();
+  drawStrokesOnMap();
 }
 
 // ── Grille ────────────────────────────────────────────────────
@@ -4435,6 +4470,79 @@ function playTurnBell() {
   } catch (e) { /* audio non disponible */ }
 }
 
+// ── Dessin sur la carte ──────────────────────────────────────
+function startDrawStroke(wx, wy) {
+  drawCurrentStroke = {
+    color: drawColor,
+    width: drawWidth,
+    points: [{ x: wx, y: wy }],
+  };
+}
+
+function addDrawPoint(wx, wy) {
+  if (!drawCurrentStroke) return;
+  drawCurrentStroke.points.push({ x: wx, y: wy });
+  drawMap();
+}
+
+function endDrawStroke() {
+  if (!drawCurrentStroke || drawCurrentStroke.points.length < 2) {
+    drawCurrentStroke = null;
+    return;
+  }
+  drawStrokes.push(drawCurrentStroke);
+  const stroke = JSON.parse(JSON.stringify(drawCurrentStroke));
+  drawCurrentStroke = null;
+  drawMap();
+  // Envoyer via socket
+  if (socket && currentMap) {
+    socket.emit('draw_stroke', { campaign_id: CAMPAIGN_ID, map_id: currentMap.id, stroke });
+  }
+}
+
+function drawStrokesOnMap() {
+  const allStrokes = drawStrokes.concat(drawCurrentStroke ? [drawCurrentStroke] : []);
+  for (const s of allStrokes) {
+    if (!s.points || s.points.length < 2) continue;
+    ctx.save();
+    ctx.strokeStyle = s.color || '#f59e0b';
+    ctx.lineWidth = (s.width || 3) * cam.zoom;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    const p0 = worldToScreen(s.points[0].x, s.points[0].y);
+    ctx.moveTo(p0.x, p0.y);
+    for (let i = 1; i < s.points.length; i++) {
+      const p = worldToScreen(s.points[i].x, s.points[i].y);
+      ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function undoLastStroke() {
+  if (drawStrokes.length === 0) return;
+  drawStrokes.pop();
+  drawMap();
+  if (socket && currentMap) {
+    socket.emit('draw_undo', { campaign_id: CAMPAIGN_ID, map_id: currentMap.id });
+  }
+}
+
+function clearAllStrokes() {
+  drawStrokes = [];
+  drawMap();
+  if (socket && currentMap) {
+    socket.emit('draw_clear', { campaign_id: CAMPAIGN_ID, map_id: currentMap.id });
+  }
+}
+
+// Palette de couleurs pour le dessin
+const DRAW_COLORS = ['#f59e0b','#ef4444','#22c55e','#3b82f6','#a855f7','#ffffff','#000000','#ea580c'];
+function setDrawColor(color) { drawColor = color; drawMap(); }
+function setDrawWidth(w) { drawWidth = Math.max(1, Math.min(20, w)); }
+
 function var_css(v) {
   return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 }
@@ -4542,6 +4650,11 @@ function onMouseDown(e) {
     return;
   }
 
+  if (currentTool === 'draw') {
+    startDrawStroke(world.x, world.y);
+    return;
+  }
+
   if (currentTool === 'select') {
     const hit = findTokenAt(world.x, world.y);
     if (hit) {
@@ -4597,6 +4710,11 @@ function onMouseMove(e) {
 
   if (currentTool === 'fog' && fogPainting && myRole === 'gm') {
     fogPaintAt(world.x, world.y);
+    return;
+  }
+
+  if (currentTool === 'draw' && drawCurrentStroke) {
+    addDrawPoint(world.x, world.y);
     return;
   }
 
@@ -4698,6 +4816,7 @@ function onMouseMove(e) {
 
 function onMouseUp(e) {
   if (currentTool === 'fog') { fogPainting = false; return; }
+  if (currentTool === 'draw') { endDrawStroke(); return; }
   if (currentTool === 'walls' && wallDrawStart && myRole === 'gm') {
     const world = screenToWorld(e.offsetX, e.offsetY);
     const dx = world.x - wallDrawStart.x, dy = world.y - wallDrawStart.y;
@@ -4858,12 +4977,14 @@ function setTool(tool) {
   if (picker) picker.style.display = (tool === 'objects') ? '' : 'none';
 
   canvas.style.cursor = (tool === 'select') ? 'grab'
-    : (tool === 'fog' || tool === 'measure' || tool === 'walls' || tool === 'objects' || tool === 'zones') ? 'crosshair'
+    : (tool === 'fog' || tool === 'measure' || tool === 'walls' || tool === 'objects' || tool === 'zones' || tool === 'draw') ? 'crosshair'
     : 'default';
   if (tool !== 'measure') { measurePoints = []; measureCursor = null; measureActive = false; if (socket) socket.emit('measure_clear', { campaign_id: CAMPAIGN_ID }); }
   if (tool !== 'zones') { zoneDrawing = null; zoneMouseDown = false; }
   const zst = document.getElementById('zoneSubtoolbar');
   if (zst) zst.classList.toggle('visible', tool === 'zones');
+  const dst = document.getElementById('drawSubtoolbar');
+  if (dst) dst.style.display = (tool === 'draw') ? 'flex' : 'none';
   wallDrawStart = null;
   drawMap();
 }
@@ -5183,6 +5304,8 @@ function hotkeyHandler(e) {
   if (key === 'm' || key === 'M') { setTool('measure'); return; }
   // Z — outil zones
   if (key === 'z' || key === 'Z') { setTool('zones'); return; }
+  // D — outil dessin
+  if (key === 'd' || key === 'D') { setTool('draw'); return; }
   // S — outil select
   if (key === 's' || key === 'S') { setTool('select'); return; }
   // F — outil fog (MJ)
@@ -9728,6 +9851,23 @@ function setupGameSocket(socket) {
     if (username !== getUser()?.username) {
       addMapPing(x, y, username);
     }
+  });
+
+  // ── Réception dessins distants ──
+  socket.on('draw_stroke', ({ stroke }) => {
+    drawStrokes.push(stroke);
+    drawMap();
+  });
+
+  socket.on('draw_undo', ({ removed }) => {
+    // Retirer le dernier stroke (correspond au pop distant)
+    if (drawStrokes.length > 0) drawStrokes.pop();
+    drawMap();
+  });
+
+  socket.on('draw_clear', () => {
+    drawStrokes = [];
+    drawMap();
   });
 
   socket.on('measure_show', ({ points, username }) => {

@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS maps (
   height         INTEGER DEFAULT 1500,
   is_active      BOOLEAN DEFAULT FALSE,
   fog_of_war     JSONB   DEFAULT '[]',
+  drawings       JSONB   DEFAULT '[]',
   created_at     TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -208,3 +209,6 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_attempts INTEGER DEFAULT 0;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMPTZ;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+
+-- ── Colonnes dessin sur carte ─────────────────────────────────
+ALTER TABLE maps ADD COLUMN IF NOT EXISTS drawings JSONB DEFAULT '[]';
