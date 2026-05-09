@@ -858,6 +858,30 @@ body.display-mode .map-info{opacity:.3;}
 body.display-mode .map-info:hover{opacity:1;}
 body.display-mode #weatherCanvas{position:fixed;inset:0;pointer-events:none;z-index:5;}
 body.display-mode #mapCanvas{display:block;width:100%;height:100%;}
+
+/* ── Mode table tactile (écran horizontal avec figurines) ── */
+body.table-mode #mapCanvas{pointer-events:none !important;cursor:default !important;}
+body.table-mode .map-toolbar{display:none !important;}
+body.table-mode .draw-subtoolbar{display:none !important;}
+body.table-mode .map-info{opacity:0 !important;}
+body.table-mode .zone-subtoolbar{display:none !important;}
+#tableOverlay{position:fixed;inset:0;z-index:100;pointer-events:none;display:none;}
+#tableOverlay.visible{display:block;}
+#tableOverlay .to-bottom{position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);display:flex;gap:1rem;align-items:center;background:rgba(14,14,20,.7);border:1px solid var(--border);border-radius:12px;padding:.5rem 1rem;backdrop-filter:blur(6px);pointer-events:auto;}
+#tableOverlay .to-bottom span{font-size:.78rem;color:var(--text2);}
+#tableOverlay .to-bottom .camp-name{color:var(--accent);font-weight:600;}
+#tableOverlay .qr-wrap{position:absolute;top:1rem;right:1rem;pointer-events:auto;background:rgba(14,14,20,.7);border:1px solid var(--border);border-radius:12px;padding:.5rem;backdrop-filter:blur(6px);text-align:center;}
+#tableOverlay .qr-wrap img{display:block;width:100px;height:100px;border-radius:6px;}
+#tableOverlay .qr-wrap .qr-label{font-size:.6rem;color:var(--text2);margin-top:.25rem;}
+#tableOverlay .lock-info{position:absolute;top:1rem;left:1rem;pointer-events:auto;display:flex;align-items:center;gap:.4rem;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:20px;padding:.25rem .7rem;font-size:.72rem;color:var(--danger);}
+#tableOverlay .lock-info.unlocked{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:var(--success);}
+.table-mode #tableOverlay.visible{display:block;}
+.table-mode #tableOverlay .to-bottom{opacity:.3;transition:.3s;}
+.table-mode #tableOverlay .to-bottom:hover{opacity:1;}
+.table-mode #tableOverlay .qr-wrap{opacity:.3;transition:.3s;}
+.table-mode #tableOverlay .qr-wrap:hover{opacity:1;}
+.table-mode #tableOverlay .lock-info{opacity:.3;transition:.3s;}
+.table-mode #tableOverlay .lock-info:hover{opacity:1;}
 </style>
 </head>
 <body>
@@ -1867,6 +1891,7 @@ body.display-mode #mapCanvas{display:block;width:100%;height:100%;}
 const params = new URLSearchParams(location.search);
 const CAMPAIGN_ID = params.get('campaign');
 const DISPLAY_MODE = params.get('mode') === 'display';
+const TABLE_MODE = params.get('table') === '1';
 let socket, campaign, myChars = [], myRole = 'player';
 let activeChar = null;
 let onlineUsers = {};
@@ -1875,6 +1900,63 @@ let hpDisplay = { pc_mode: 'bar', npc_mode: 'none', threshold_high: 70, threshol
 
 // ── Mode affichage central ──
 if (DISPLAY_MODE) document.body.classList.add('display-mode');
+if (TABLE_MODE) document.body.classList.add('table-mode');
+
+// ── Mode table : écran tactile verrouillé ──
+let tableLocked = TABLE_MODE;
+
+function unlockTable() {
+  if (tableLocked && confirm('Déverrouiller l\'écran tactile ? Attention : les figurines sur l\'écran peuvent déclencher des actions.')) {
+    tableLocked = false;
+    updateTableUI();
+  }
+}
+
+function lockTable() {
+  tableLocked = true;
+  updateTableUI();
+}
+
+function updateTableUI() {
+  const overlay = document.getElementById('tableOverlay');
+  if (!overlay) return;
+  overlay.classList.toggle('visible', tableLocked);
+  const lockInfo = document.getElementById('tableLockInfo');
+  if (lockInfo) {
+    lockInfo.className = 'lock-info' + (tableLocked ? '' : ' unlocked');
+    lockInfo.innerHTML = tableLocked ? '🔒 Verrouillé' : '🔓 Déverrouillé';
+  }
+}
+
+// Créer et injecter l'overlay table (appelé après loadCampaign)
+function initTableOverlay() {
+  if (!TABLE_MODE) return;
+  const div = document.createElement('div');
+  div.id = 'tableOverlay';
+  div.className = 'visible';
+  const cName = (campaign && campaign.name) || 'Partie en cours';
+  div.innerHTML = `
+    <div class="lock-info" id="tableLockInfo">🔒 Verrouillé</div>
+    <div class="qr-wrap">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(location.origin + '/lobby.html')}" alt="QR code" loading="lazy"/>
+      <div class="qr-label">Scannez pour rejoindre</div>
+    </div>
+    <div class="to-bottom">
+      <span class="camp-name">${cName}</span>
+      <span>·</span>
+      <span id="tableOnlineCount">0 en ligne</span>
+      <button class="tool-btn" onclick="unlockTable()" style="font-size:.7rem;padding:.15rem .5rem;" title="Déverrouiller l'écran">🔓 Déverrouiller</button>
+      <button class="tool-btn" onclick="lockTable()" style="font-size:.7rem;padding:.15rem .5rem;" title="Verrouiller">🔒</button>
+      <a class="tool-btn" href="${location.origin + '/game.html?campaign=' + CAMPAIGN_ID + '&mode=display'}" style="font-size:.7rem;padding:.15rem .5rem;text-decoration:none;">↻ Reconnecter</a>
+    </div>
+  `;
+  document.body.appendChild(div);
+}
+
+function updateTableOnlineCount() {
+  const el = document.getElementById('tableOnlineCount');
+  if (el) el.textContent = Object.keys(onlineUsers).length + ' en ligne';
+}
 
 // ── Auth guard ───────────────────────────────────────────────
 (async () => {
@@ -1951,6 +2033,8 @@ async function loadCampaign() {
     // Mode écran central : pas besoin des sidebars ni du chargement des personnages
     document.querySelector('.sidebar-left')?.remove();
     document.querySelector('.sidebar-right')?.remove();
+    // Mode table : afficher l'overlay verrouillé
+    if (TABLE_MODE) initTableOverlay();
     initCanvas();
     // Ne pas appeler connectSocket() ici — ce sera fait après loadCampaign()
     return;
@@ -2533,6 +2617,19 @@ function connectSocket() {
   // Liste complète envoyée par le serveur après join (sockets déjà présents)
   socket.on('online_users', (users) => {
     users.forEach(u => { if (!onlineUsers[u.id]) addOnlineUser(u); });
+    updateTableOnlineCount();
+  });
+
+  socket.on('user_joined', (user) => {
+    addOnlineUser(user);
+    addSystemMessage(`${user.username} a rejoint la session`);
+    updateTableOnlineCount();
+  });
+
+  socket.on('user_left', (user) => {
+    removeOnlineUser(user.id);
+    addSystemMessage(`${user.username} a quitté la session`);
+    updateTableOnlineCount();
   });
 
   socket.on('campaign_state', ({ messages, map, tokens }) => {
@@ -2555,16 +2652,6 @@ function connectSocket() {
       const sel = document.getElementById('charSelector');
       if (sel) { sel.value = myChars[0].id; selectChar(myChars[0].id); }
     }
-  });
-
-  socket.on('user_joined', (user) => {
-    addOnlineUser(user);
-    addSystemMessage(`${user.username} a rejoint la session`);
-  });
-
-  socket.on('user_left', (user) => {
-    removeOnlineUser(user.id);
-    addSystemMessage(`${user.username} a quitté la session`);
   });
 
   socket.on('message_received', (msg) => addChatMessage(msg));
