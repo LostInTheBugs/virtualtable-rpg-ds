@@ -47,7 +47,7 @@ router.get('/users', async (req, res) => {
   try {
     const result = await db.query(`
       SELECT
-        u.id, u.username, u.email, u.avatar_url, u.is_admin,
+        u.id, u.username, u.email, u.avatar_url, u.is_admin, u.tier,
         u.created_at, u.last_login,
         u.failed_attempts,
         u.locked_until > NOW() AS is_locked,
@@ -108,18 +108,39 @@ router.delete('/users/:id', async (req, res) => {
 });
 
 // ── PUT /rpg/api/admin/users/:id/toggle-admin ─────────────────
-// Promouvoir / rétrograder un admin
+// Promouvoir / rétrograder un admin (définit aussi le tier)
 router.put('/users/:id/toggle-admin', async (req, res) => {
   if (req.params.id === req.user.id) return res.status(400).json({ error: 'Impossible de modifier son propre statut admin' });
   try {
+    const cur = await db.query('SELECT is_admin FROM users WHERE id = $1', [req.params.id]);
+    if (!cur.rows[0]) return res.status(404).json({ error: 'Utilisateur introuvable' });
+    const newAdmin = !cur.rows[0].is_admin;
     const r = await db.query(
-      'UPDATE users SET is_admin = NOT is_admin WHERE id = $1 RETURNING id, username, is_admin',
-      [req.params.id]
+      'UPDATE users SET is_admin = $1, tier = $2 WHERE id = $3 RETURNING id, username, is_admin, tier',
+      [newAdmin, newAdmin ? 'admin' : 'creator', req.params.id]
+    );
+    res.json(r.rows[0]);
+  } catch (err) {
+    console.error('[ADMIN] toggle-admin error:', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ── PUT /rpg/api/admin/users/:id/set-tier ─────────────────────
+// Définir le tier d'un utilisateur
+router.put('/users/:id/set-tier', async (req, res) => {
+  const { tier } = req.body;
+  const validTiers = ['player', 'creator', 'ai_gm', 'admin'];
+  if (!validTiers.includes(tier)) return res.status(400).json({ error: 'Tier invalide' });
+  try {
+    const r = await db.query(
+      'UPDATE users SET tier = $1 WHERE id = $2 RETURNING id, username, tier',
+      [tier, req.params.id]
     );
     if (!r.rows[0]) return res.status(404).json({ error: 'Utilisateur introuvable' });
     res.json(r.rows[0]);
   } catch (err) {
-    console.error('[ADMIN] toggle-admin error:', err);
+    console.error('[ADMIN] set-tier error:', err);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

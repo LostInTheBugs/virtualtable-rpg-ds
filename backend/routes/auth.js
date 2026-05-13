@@ -119,7 +119,7 @@ router.post('/login', loginLimiter, checkHoneypot, async (req, res) => {
   try {
     const result = await db.query(
       `SELECT id, username, email, password_hash, avatar_url,
-              failed_attempts, locked_until, is_admin, invite_code
+              failed_attempts, locked_until, is_admin, invite_code, tier
        FROM users WHERE email = $1`,
       [email.toLowerCase().trim()]
     );
@@ -188,10 +188,10 @@ router.post('/login', loginLimiter, checkHoneypot, async (req, res) => {
 // ── GET /rpg/api/auth/me ──────────────────────────────────────
 router.get('/me', require('../middleware/auth').authMiddleware, async (req, res) => {
   try {
-    const result = await db.query(
-      'SELECT id, username, email, avatar_url, created_at, last_login, invite_code, is_admin FROM users WHERE id = $1',
-      [req.user.id]
-    );
+      const result = await db.query(
+        'SELECT id, username, email, avatar_url, created_at, last_login, invite_code, is_admin, tier FROM users WHERE id = $1',
+        [req.user.id]
+      );
     if (!result.rows[0]) return res.status(404).json({ error: 'Utilisateur introuvable' });
     res.json(result.rows[0]);
   } catch (err) {

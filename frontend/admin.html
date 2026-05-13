@@ -246,7 +246,7 @@ td{padding:.65rem 1rem;vertical-align:middle;}
               <tr>
                 <th>Utilisateur</th>
                 <th>Email</th>
-                <th>Rôle</th>
+                <th>Niveau</th>
                 <th>Statut</th>
                 <th>Campagnes</th>
                 <th>Dernière connexion</th>
@@ -561,15 +561,16 @@ function filterUsers() {
 
 function renderUsers(users) {
   const tbody = document.getElementById('usersTbody');
-  if (!users.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2rem">Aucun utilisateur</td></tr>'; return; }
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:2rem">Aucun utilisateur</td></tr>'; return; }
+  tierName = {player:'👤 Joueur',creator:'🛠 Créateur',ai_gm:'🤖 MJ Virtuel',admin:'🛡 Admin'};
   tbody.innerHTML = users.map(u => {
     const isMe = u.id === currentUser?.id;
-    const adminBadge = u.is_admin ? '<span class="badge badge-admin">ADMIN</span>' : '';
+    const badgeTier = tierName[u.tier] || u.tier || '👤 Joueur';
     const lockBadge  = u.is_locked ? '<span class="badge badge-locked">🔒 Bloqué</span>' : '<span class="badge badge-ok">✓ OK</span>';
     return `<tr>
       <td><strong>${esc(u.username)}</strong>${isMe ? ' <span style="color:var(--text3);font-size:.7rem">(vous)</span>' : ''}</td>
       <td class="text-sm text-muted">${esc(u.email)}</td>
-      <td>${adminBadge}</td>
+      <td><span class="badge" style="background:${u.tier==='admin'?'var(--danger)':u.tier==='ai_gm'?'var(--accent2)':u.tier==='creator'?'var(--accent)':'var(--text3)'}">${badgeTier}</span></td>
       <td>${lockBadge}</td>
       <td class="text-sm">${u.owned_campaigns} MJ · ${u.campaign_count} total</td>
       <td class="text-sm text-muted">${fmt(u.last_login)}</td>
@@ -577,8 +578,13 @@ function renderUsers(users) {
       <td>
         <div class="btn-row">
           <button class="btn-xs btn-primary" onclick='openEditUser(${JSON.stringify(u)})'>✏</button>
+          ${!isMe ? `<select class="btn-xs" onchange="setTier('${u.id}','${esc(u.username)}',this.value)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.15rem .3rem;border-radius:4px;font-size:.7rem;">
+            <option value="player" ${u.tier==='player'?'selected':''}>👤 Joueur</option>
+            <option value="creator" ${u.tier==='creator'?'selected':''}>🛠 Créateur</option>
+            <option value="ai_gm" ${u.tier==='ai_gm'?'selected':''}>🤖 MJ Virtuel</option>
+            <option value="admin" ${u.tier==='admin'?'selected':''}>🛡 Admin</option>
+          </select>` : ''}
           ${u.is_locked ? `<button class="btn-xs btn-success" onclick="unlockUser('${u.id}','${esc(u.username)}')">🔓</button>` : ''}
-          ${!isMe ? `<button class="btn-xs btn-warning" onclick="toggleAdmin('${u.id}','${esc(u.username)}',${u.is_admin})">${u.is_admin ? '⬇ Rétrograder' : '⬆ Promouvoir'}</button>` : ''}
           ${!isMe ? `<button class="btn-xs btn-danger" onclick="deleteUser('${u.id}','${esc(u.username)}')">🗑</button>` : ''}
         </div>
       </td>
@@ -612,6 +618,15 @@ async function unlockUser(id, name) {
     toast(`Compte de ${name} débloqué`);
     await loadUsers();
   } catch(e) { toast(e.message, 'error'); }
+}
+
+async function setTier(id, username, tier) {
+  if (!confirm(`Définir le niveau de "${username}" à "${tier}" ?`)) return;
+  try {
+    await apiFetch(`/admin/users/${id}/set-tier`, { method: 'PUT', body: JSON.stringify({ tier }) });
+    toast(`Niveau de ${username} mis à jour → ${tier}`);
+    loadUsers();
+  } catch (e) { toast(e.message, 'error'); }
 }
 
 async function toggleAdmin(id, name, isAdmin) {

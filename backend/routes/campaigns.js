@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const db = require('../db');
-const { authMiddleware } = require('../middleware/auth');
+const { authMiddleware, requireTier } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
 
 function genCode() {
@@ -27,7 +27,7 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // POST /rpg/api/campaigns — créer une campagne
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, requireTier('creator'), async (req, res) => {
   const { name, description, system } = req.body;
   if (!name) return res.status(400).json({ error: 'Nom requis' });
 

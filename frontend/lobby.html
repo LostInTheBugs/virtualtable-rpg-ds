@@ -235,7 +235,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
       <span class="panel-title">Campagnes</span>
       <div class="spacer"></div>
       <button class="btn-xs btn-secondary" onclick="openModal('join')" title="Rejoindre">🔑</button>
-      <button class="btn-xs btn-primary" onclick="openModal('create')">＋ Nouvelle</button>
+      <button class="btn-xs btn-primary" id="createBtn" onclick="openModal('create')">＋ Nouvelle</button>
     </div>
     <div class="camps-list" id="campsList">
       <div class="loader"><div class="spinner"></div></div>
@@ -553,9 +553,14 @@ let spellItems = [];
     const av = document.getElementById('userAvatar');
     if (user.avatar_url) { av.innerHTML = `<img src="${user.avatar_url}" alt="${user.username}"/>`; }
     else { av.textContent = user.username[0].toUpperCase(); }
-    if (user.is_admin) {
+    if (user.is_admin || user.tier === 'admin') {
       document.getElementById('adminLink').style.display = '';
       document.getElementById('adminSep').style.display = '';
+    }
+    // Masquer le bouton création campagne si le tier est insuffisant
+    if (user.tier === 'player') {
+      const btn = document.getElementById('createBtn');
+      if (btn) btn.style.display = 'none';
     }
   } catch { clearToken(); window.location.href = '/'; }
 })();
