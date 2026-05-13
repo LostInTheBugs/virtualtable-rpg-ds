@@ -279,6 +279,13 @@ function render() {
     </div>
   </div>
 
+  <!-- Zone dangereuse -->
+  <div class="section danger-section">
+    <div class="section-title">🗑 Zone dangereuse</div>
+    <p style="font-size:.82rem;color:var(--text2);margin-bottom:.8rem;">Supprimer définitivement cette campagne et toutes ses données (personnages, cartes, messages…). Cette action est <strong>irréversible</strong>.</p>
+    <button class="btn-save" id="btnDelete" onclick="deleteCampaign()" style="background:linear-gradient(135deg,var(--danger),#a00000);color:#fff;">🗑 Supprimer cette campagne</button>
+  </div>
+
   <!-- Sauvegarde -->
   <div class="save-row">
     <button class="btn-save" id="btnSave" onclick="saveSettings()">💾 Enregistrer les réglages</button>
@@ -332,6 +339,21 @@ async function regenInvite() {
     showStatus('Nouveau code généré !', false);
   } catch (e) {
     showStatus('Erreur lors de la régénération', true);
+  }
+}
+
+async function deleteCampaign() {
+  if (!confirm('⚠️ Supprimer définitivement cette campagne ?\\n\\nTous les personnages, cartes, messages et tokens seront perdus. Cette action est irréversible.')) return;
+  if (!confirm('🔴 Confirmer la suppression de "' + campaign.name + '" ?')) return;
+  const btn = document.getElementById('btnDelete');
+  btn.disabled = true; btn.textContent = '⏳ Suppression…';
+  try {
+    await apiFetch('/campaigns/' + CAMPAIGN_ID, { method: 'DELETE' });
+    window.location.href = '/lobby.html';
+  } catch (e) {
+    document.getElementById('saveStatus').textContent = 'Erreur : ' + e.message;
+    document.getElementById('saveStatus').className = 'save-status visible error';
+    btn.disabled = false; btn.textContent = '🗑 Supprimer cette campagne';
   }
 }
 
