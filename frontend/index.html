@@ -10,14 +10,20 @@
 <style>
   :root{--bg:#0e0e14;--surface:#16161f;--border:#2a2a3a;--accent:#c9a227;--accent2:#8b5cf6;--text:#e8e0d0;--text2:#9990a8;--danger:#ef4444;--success:#22c55e;}
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  body{color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
 
-  /* Particules de fond */
-  .bg-stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
-  .star{position:absolute;border-radius:50%;background:var(--accent);opacity:.15;animation:twinkle var(--d,3s) ease-in-out infinite alternate;}
-  @keyframes twinkle{to{opacity:.5;transform:scale(1.5);}}
+  /* Fond d'écran — table de JDR générée par IA */
+  body::before{content:'';position:fixed;inset:0;z-index:0;
+    background:url('/img/login-bg.jpg') center/cover no-repeat;
+    filter:brightness(.65) saturate(1.1);
+    transform:scale(1.05); /* léger zoom pour éviter les bords */
+  }
+  /* Voile sombre pour la lisibilité */
+  body::after{content:'';position:fixed;inset:0;z-index:1;
+    background:radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,.55) 100%);
+  }
 
-  .login-wrap{position:relative;z-index:1;width:100%;max-width:420px;padding:1rem;}
+  .login-wrap{position:relative;z-index:2;width:100%;max-width:420px;padding:1rem;}
 
   .logo{text-align:center;margin-bottom:2rem;}
   .logo h1{font-family:'Cinzel',serif;font-size:2rem;color:var(--accent);text-shadow:0 0 20px rgba(201,162,39,.4);letter-spacing:.05em;}
@@ -53,7 +59,6 @@
 </head>
 <body>
 
-<div class="bg-stars" id="bgStars"></div>
 
 <div class="login-wrap">
   <div class="logo">
@@ -196,15 +201,6 @@ function validateCaptcha(inputId) {
   buildCaptcha('loginCaptcha');
   buildCaptcha('registerCaptcha');
 })();
-
-// Étoiles de fond
-const stars = document.getElementById('bgStars');
-for (let i = 0; i < 80; i++) {
-  const s = document.createElement('div');
-  s.className = 'star';
-  s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${Math.random()*3+1}px;height:${Math.random()*3+1}px;--d:${(Math.random()*4+2).toFixed(1)}s;animation-delay:${(Math.random()*4).toFixed(1)}s`;
-  stars.appendChild(s);
-}
 
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
