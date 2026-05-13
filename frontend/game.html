@@ -3741,25 +3741,49 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
     if (faces === 6) {
       mat = buildD6Materials(style);
     } else {
-      // Per-face colored materials pour donner du relief
-      const baseColor = style.body;
+      const edgeHex = '#' + (style.edge || 0xc9a227).toString(16).padStart(6, '0');
+      const bgHex = '#' + style.body.toString(16).padStart(6, '0');
+      const idx = geom.getIndex();
+      const uv = geom.attributes.uv;
+      const strs = 3; // stride = 3 per face
+      const triCount = idx ? idx.count / 3 : geom.attributes.position.count / 3;
       const mats = [];
-      for (let f = 0; f < faces; f++) {
-        const shade = 0.7 + (f / faces) * 0.6;
-        const r = ((baseColor >> 16) & 0xff) * shade;
-        const g = ((baseColor >> 8) & 0xff) * shade;
-        const b = (baseColor & 0xff) * shade;
-        const color = (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
+      for (let f = 0; f < Math.min(triCount, faces); f++) {
+        // Compute UV center for this face
+        const i0 = idx ? idx.getX(f * 3) : f * 3;
+        const i1 = idx ? idx.getX(f * 3 + 1) : f * 3 + 1;
+        const i2 = idx ? idx.getX(f * 3 + 2) : f * 3 + 2;
+        let ux = 0, uy = 0;
+        if (uv) {
+          ux = (uv.getX(i0) + uv.getX(i1) + uv.getX(i2)) / 3;
+          uy = (uv.getY(i0) + uv.getY(i1) + uv.getY(i2)) / 3;
+        } else {
+          ux = 0.5; uy = 0.5;
+        }
+        // Canvas for this face
+        const cv = document.createElement('canvas');
+        cv.width = cv.height = 128;
+        const cx = cv.getContext('2d');
+        cx.fillStyle = bgHex;
+        cx.fillRect(0, 0, 128, 128);
+        cx.strokeStyle = edgeHex;
+        cx.lineWidth = 2;
+        if (cx.roundRect) { cx.roundRect(4, 4, 120, 120, 8); cx.stroke(); }
+        else { cx.strokeRect(4, 4, 120, 120); }
+        cx.fillStyle = edgeHex;
+        cx.textAlign = 'center';
+        cx.textBaseline = 'middle';
+        const fontSize = f + 1 > 9 ? 36 : 44;
+        cx.font = `bold ${fontSize}px Inter, sans-serif`;
+        // Draw number at UV center of canvas
+        const cxPos = Math.round(ux * 128);
+        const cyPos = Math.round(uy * 128);
+        cx.fillText(String(f + 1), Math.max(20, Math.min(108, cxPos)), Math.max(20, Math.min(108, cyPos)));
         mats.push(new THREE.MeshPhongMaterial({
-          color: color,
-          specular: style.specular,
-          shininess: style.shininess,
+          map: new THREE.CanvasTexture(cv),
           polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
         }));
       }
-      // Setup per-face groups (handle both indexed and non-indexed)
-      const idx = geom.getIndex();
-      const triCount = idx ? idx.count / 3 : geom.attributes.position.count / 3;
       if (triCount >= faces) {
         geom.clearGroups();
         for (let f = 0; f < faces; f++) {
