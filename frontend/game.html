@@ -5976,43 +5976,6 @@ function focusCombatant(combatantName, charId) {
 // ── Modal fiche personnage ────────────────────────────────────
 // Les définitions sont chargées dynamiquement depuis systems.js
 // via les helpers currentSystemStats() / currentSystemSkills()
-  {name:'Survie',attr:'wis'},{name:'Supercherie',attr:'cha'},{name:'Perspicacité',attr:'wis'},
-];
-
-const RACES_DND5E = ['Humain','Elfe','Elfe des bois','Elfe de haute noblesse','Elfe noir (Drow)','Nain des collines','Nain des montagnes','Halfelin','Gnome des forêts','Gnome des roches','Demi-Elfe','Demi-Orc','Tieffelin','Dragonien','Aasimar','Goliath','Triton','Tabaxi','Kenku','Lizardfolk','Tortle','Firbolg','Yuan-ti Pureblooded'];
-const RACES_PF2E  = ['Humain','Elfe','Gnome','Gobelin','Halfelin','Nain','Anadi','Catfolk','Fetchling','Fleshwarp','Hobgoblin','Kitsune','Leshy','Lizardfolk','Orc','Ratfolk','Shisk','Strix','Tengu','Vishkanya'];
-const CLASSES_DND5E = ['Barbare','Barde','Clerc','Druide','Guerrier','Moine','Paladin','Rôdeur','Roublard','Ensorceleur','Occultiste','Magicien','Artificier','Sangdragon (Blood Hunter)'];
-const CLASSES_PF2E  = ['Alchimiste','Barbare','Barde','Champion','Chasseur','Clerc','Druide','Enquêteur','Guerrier','Magicien','Moine','Oracle','Roublard','Sorcier','Spirite','Swashbuckler','Thaumaturge','Witchwarper'];
-
-const SUBCLASSES_DND5E = {
-  'Barbare':    ['Voie du Berserker','Voie du Guerrier Totem','Voie du Héraut de la Tempête','Voie du Fanatique','Voie du Héraut des Ancêtres','Voie de la Magie sauvage','Voie du Géant'],
-  'Barde':      ['Collège du Savoir','Collège de la Vaillance','Collège des Chuchotements','Collège de la Création','Collège de l\'Éloquence','Collège des Esprits'],
-  'Clerc':      ['Domaine de la Vie','Domaine de la Lumière','Domaine de la Tempête','Domaine de la Ruse','Domaine du Savoir','Domaine de la Nature','Domaine de la Guerre','Domaine de la Mort','Domaine de la Forge','Domaine des Tombeaux','Domaine de l\'Ordre','Domaine de la Paix','Domaine du Crépuscule'],
-  'Druide':     ['Cercle de la Terre','Cercle de la Lune','Cercle des Rêves','Cercle des Spores','Cercle des Étoiles','Cercle du Berger','Cercle des Feux de la Nature'],
-  'Guerrier':   ['Champion','Chevalier Eldritch','Maître de bataille','Archer Arcane','Samouraï','Cavalier','Psi Warrior','Rune Knight'],
-  'Moine':      ['Voie de la Main Ouverte','Voie de l\'Ombre','Voie des Quatre Éléments','Voie du Soleil Solaire','Voie du Kensei','Voie de la Miséricorde','Voie du Moi Astral','Voie du Moine Ivre'],
-  'Paladin':    ['Serment de Dévotion','Serment des Anciens','Serment de Vengeance','Serment de la Conquête','Serment de la Rédemption','Serment de Gloire','Serment du Guetteur','Serment brisé'],
-  'Rôdeur':     ['Chasseur','Maître des Bêtes','Traqueur de Monstres','Horizon Walker','Gloom Stalker','Fey Wanderer','Swarmkeeper'],
-  'Roublard':   ['Escroc','Tireur d\'Élite','Assassin','Archétype Arcane','Inquisitif','Scout','Phantôme','Filou Soulard'],
-  'Ensorceleur':['Origine de l\'Héritage Draconique','Magie Sauvage','Divine Soul','Âme Fantôme','Storm Sorcery','Clockwork Soul','Aberrant Mind'],
-  'Occultiste': ['Archifée','Grand Ancien','Fiélon','Céleste','Fathomless','Genie','Undead'],
-  'Magicien':   ['École d\'Abjuration','École de Conjuration','École de Divination','École d\'Enchantement','École d\'Évocation','École d\'Illusion','École de Nécromancie','École de Transmutation','Magie de Guerre','Lames Chantantes','Chronomancien'],
-  'Artificier': ['Alchimiste','Artilleur','Forgeron de Bataille','Armure Infusée'],
-  'Sangdragon (Blood Hunter)': ['Ordre du Briseur de Mâchoire','Ordre de la Plume d\'Argent','Ordre du Cadavre','Ordre du Traqueur'],
-};
-const SUBCLASSES_PF2E = {
-  'Alchimiste': ['Bombardier','Chirurgien du champ de bataille','Empoisonneur','Mutagéniste'],
-  'Barbare':    ['Raging Berserker','Superstition','Totem','Fury','Giant','Spirit'],
-  'Barde':      ['Maestro','Warrior','Polymath','Enigma'],
-  'Champion':   ['Dévot de la Déesse des Abeilles','Liberateur','Répresseur','Vengeur'],
-  'Chasseur':   ['Fletchercher','Scout','Snare Specialist','Outrider'],
-  'Clerc':      ['Cloistered Cleric','Warpriest'],
-  'Druide':     ['Animal','Leaf','Storm','Wild'],
-  'Guerrier':   ['Desarmant','Spirited','Vengeful','Student of the Sword'],
-  'Magicien':   ['Abjuration','Conjuration','Divination','Enchantement','Évocation','Illusion','Nécromancie','Transmutation'],
-  'Moine':      ['Irori','Wellspring Mage'],
-  'Roublard':   ['Scoundrel','Thief','Assassin','Mastermind'],
-};
 
 // ── Combo-select helpers ──────────────────────────────────────────
 function buildComboOptions(selId, options, currentVal) {
