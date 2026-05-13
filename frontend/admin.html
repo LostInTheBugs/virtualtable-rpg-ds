@@ -167,6 +167,11 @@ td{padding:.65rem 1rem;vertical-align:middle;}
       <label>Mot de passe</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"/>
     </div>
+    <div class="form-group">
+      <label>CAPTCHA</label>
+      <div id="adminCaptcha" style="display:flex;gap:.4rem;align-items:center;"></div>
+      <input type="text" id="loginCaptchaInput" placeholder="Résultat du calcul" required style="margin-top:.3rem;width:100%;background:#1e1e2a;border:1px solid var(--border);color:var(--text);padding:.5rem .7rem;border-radius:6px;font-size:.85rem;outline:none;"/>
+    </div>
     <button id="btnLogin" onclick="doLogin()">Connexion</button>
     <div id="loginErr"></div>
   </div>
@@ -346,6 +351,47 @@ td{padding:.65rem 1rem;vertical-align:middle;}
 
 <script>
 // ══════════════════════════════════════════════════════════════
+// CAPTCHA
+// ══════════════════════════════════════════════════════════════
+let _adminCaptchaAnswer = 0;
+function buildAdminCaptcha() {
+  const a = Math.floor(Math.random() * 9) + 2;
+  const b = Math.floor(Math.random() * 9) + 2;
+  const ops = ['+', '×'];
+  const op = ops[Math.floor(Math.random() * ops.length)];
+  _adminCaptchaAnswer = op === '+' ? a + b : a * b;
+  const el = document.getElementById('adminCaptcha');
+  if (!el) return;
+  const cv = document.createElement('canvas');
+  cv.width = 120; cv.height = 40;
+  const cx = cv.getContext('2d');
+  cx.fillStyle = '#1e1e2a';
+  cx.beginPath(); cx.roundRect(0, 0, 120, 40, 6); cx.fill();
+  cx.strokeStyle = '#2a2a3a';
+  cx.lineWidth = 1;
+  cx.beginPath(); cx.roundRect(0, 0, 120, 40, 6); cx.stroke();
+  const colors = ['#c9a227','#8b5cf6','#22c55e','#ef4444','#3b82f6'];
+  cx.font = 'bold 20px Inter, sans-serif';
+  cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+  cx.transform(1, (Math.random() - 0.5) * 0.15, (Math.random() - 0.5) * 0.15, 1, 0, 0);
+  cx.fillText(`${a} ${op} ${b} = ?`, 60, 22);
+  cx.setTransform(1, 0, 0, 1, 0, 0);
+  for (let i = 0; i < 10; i++) {
+    cx.fillStyle = `rgba(200,200,200,${Math.random() * 0.3})`;
+    cx.beginPath(); cx.arc(Math.random() * 120, Math.random() * 40, 1, 0, Math.PI * 2); cx.fill();
+  }
+  el.innerHTML = '';
+  el.appendChild(cv);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = '↻';
+  btn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:.2rem .5rem;cursor:pointer;font-size:.85rem;';
+  btn.onclick = buildAdminCaptcha;
+  el.appendChild(btn);
+}
+
+// ══════════════════════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════════════════════
 const API = '/rpg/api';
@@ -397,6 +443,14 @@ async function doLogin() {
   const pwd   = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginErr');
   errEl.style.display = 'none';
+  // CAPTCHA check
+  const captchaEl = document.getElementById('loginCaptchaInput');
+  const captchaVal = parseInt(captchaEl?.value);
+  if (captchaVal !== _adminCaptchaAnswer) {
+    errEl.textContent = 'CAPTCHA incorrect'; errEl.style.display = 'block';
+    buildAdminCaptcha(); if (captchaEl) captchaEl.value = '';
+    return;
+  }
   try {
     // 1. Login
     const r = await fetch(API + '/auth/login', {
@@ -433,6 +487,7 @@ function doLogout() {
   localStorage.removeItem('admin_token');
   document.getElementById('adminUI').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
+  buildAdminCaptcha();
 }
 
 async function initAdmin() {
@@ -772,6 +827,9 @@ if (token) {
 } else {
   document.getElementById('loginScreen').style.display = 'flex';
 }
+
+// Initialiser le CAPTCHA sur l'écran de login au chargement
+document.addEventListener('DOMContentLoaded', () => buildAdminCaptcha());
 
 // Refresh automatique des utilisateurs connectés toutes les 30s
 setInterval(() => {
