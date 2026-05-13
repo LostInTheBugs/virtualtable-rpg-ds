@@ -10,6 +10,12 @@
 :root{--bg:#0e0e14;--surface:#16161f;--surface2:#1e1e2a;--surface3:#242430;--border:#2a2a3a;--accent:#c9a227;--accent2:#8b5cf6;--text:#e8e0d0;--text2:#9990a8;--danger:#ef4444;--success:#22c55e;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+/* Fond d'écran — Salle de guilde */
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:url('/img/lobby-bg.jpg') center/cover no-repeat;
+  filter:brightness(.35) saturate(1.05);
+  transform:scale(1.03);
+}
 
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:.8rem 1.5rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:30;}
 .logo-sm{font-family:'Cinzel',serif;color:var(--accent);font-size:1.05rem;text-decoration:none;}
@@ -33,9 +39,9 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:.
 .dropdown-sep{height:1px;background:var(--border);margin:.2rem 0;}
 
 /* Layout deux colonnes */
-.layout{display:flex;min-height:calc(100vh - 49px);}
-.col-left{width:340px;border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;}
-.col-right{flex:1;overflow-y:auto;}
+.layout{display:flex;min-height:calc(100vh - 49px);position:relative;z-index:1;}
+.col-left{width:340px;border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;background:rgba(22,22,31,.7);backdrop-filter:blur(6px);}
+.col-right{flex:1;overflow-y:auto;background:rgba(14,14,20,.55);backdrop-filter:blur(4px);}
 
 /* Panneau campagnes */
 .panel-header{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;}
