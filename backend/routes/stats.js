@@ -23,9 +23,9 @@ router.get('/', authMiddleware, async (req, res) => {
       // Lancés de dés (messages de type roll)
       db.query('SELECT COUNT(*) AS total FROM messages WHERE type = $1', ['roll']),
       // Critiques (20 sur d20)
-      db.query(`SELECT COUNT(*) AS total FROM messages WHERE type = 'roll' AND roll_data->>'rolls' LIKE '%20%'`),
+      db.query(`SELECT COUNT(*) AS total FROM messages WHERE type = 'roll' AND roll_data->>'rolls' ~ '\\[20\\]|\\b20\\b'`),
       // Échecs critiques (1 sur d20)
-      db.query(`SELECT COUNT(*) AS total FROM messages WHERE type = 'roll' AND roll_data->>'rolls' LIKE '%1%'`),
+      db.query(`SELECT COUNT(*) AS total FROM messages WHERE type = 'roll' AND roll_data->>'rolls' ~ '\\b1\\b'`),
       // Utilisateurs actifs (connectés depuis moins de 24h)
       db.query("SELECT COUNT(*) AS total FROM users WHERE last_login > NOW() - INTERVAL '24 hours'"),
     ]);
@@ -36,8 +36,8 @@ router.get('/', authMiddleware, async (req, res) => {
         DATE(created_at) AS day,
         COUNT(*) AS messages,
         COUNT(*) FILTER (WHERE type = 'roll') AS rolls,
-        COUNT(*) FILTER (WHERE type = 'roll' AND roll_data->>'rolls' LIKE '%20%') AS crits,
-        COUNT(*) FILTER (WHERE type = 'roll' AND roll_data->>'rolls' LIKE '%1%') AS fumbles
+        COUNT(*) FILTER (WHERE type = 'roll' AND roll_data->>'rolls' ~ '\\[20\\]|\\b20\\b') AS crits,
+        COUNT(*) FILTER (WHERE type = 'roll' AND roll_data->>'rolls' ~ '\\b1\\b') AS fumbles
       FROM messages
       WHERE created_at > NOW() - INTERVAL '30 days'
       GROUP BY DATE(created_at)

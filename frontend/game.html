@@ -1911,6 +1911,10 @@ let hpDisplay = { pc_mode: 'bar', npc_mode: 'none', threshold_high: 70, threshol
 if (DISPLAY_MODE) document.body.classList.add('display-mode');
 if (TABLE_MODE) document.body.classList.add('table-mode');
 
+// ── Ciblage (global, accessible par drawTargetLines) ──
+const campaignTargets = []; // { from_token_id, to_token_id, to_token_name, player_id, player_name, revealed }
+let myTargets = [];
+
 // ── Mode table : écran tactile verrouillé ──
 let tableLocked = TABLE_MODE;
 
@@ -10208,9 +10212,6 @@ function setupGameSocket(socket) {
   });
 
   // ── Ciblage ──
-  const campaignTargets = []; // { from_token_id, to_token_id, to_token_name, player_id, player_name, revealed }
-  let myTargets = []; // cibles du joueur local
-
   socket.on('targets_state', (targets) => {
     campaignTargets.length = 0;
     if (!myRole || myRole === 'gm') {
