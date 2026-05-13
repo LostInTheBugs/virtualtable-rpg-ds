@@ -2182,15 +2182,15 @@ function renderCharSidebarStats() {
     if (btn && btn.parentNode) btn.parentNode.insertBefore(qroll, btn);
   }
   // Jets de sauvegarde (adaptés au système)
-  const sysStats = currentSystemStats();
-  const savingLabels = sysStats.map(s => s.label);
-  const savingAttrs  = sysStats.map(s => s.key);
+  const sysSavingStats = currentSystemStats();
+  const savingLabels = sysSavingStats.map(s => s.label);
+  const savingAttrs  = sysSavingStats.map(s => s.key);
   const proficiencies = activeChar.saving_throws || {};
   const savingHtml = `<div style="font-size:.65rem;color:var(--text2);margin:.3rem 0 .2rem;text-transform:uppercase;letter-spacing:.05em;">Jets de sauvegarde</div>
     <div style="display:flex;flex-wrap:wrap;gap:.3rem;">
     ${savingAttrs.map((a,i) => {
-      const sysStats2 = currentSystemStats();
-    const statDef = sysStats2.find(st => st.key === a);
+      const sysSaveStats = currentSystemStats();
+    const statDef = sysSaveStats.find(st => st.key === a);
     const base = statDef?.default || 10;
     const isStandard = !['Warhammer Fantasy','Call of Cthulhu','Shadowrun','Vampire: The Masquerade','Cyberpunk Red','Savage Worlds'].includes(currentSystemName());
     const mod = Math.floor(((stats[a]||base) - base) / (isStandard ? 2 : 10)) + (proficiencies[a] ? prof : 0);
