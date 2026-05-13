@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VirtualTable RPG — Statistiques</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0e0e14;--surface:#16161f;--surface2:#1e1e2a;--surface3:#242430;--border:#2a2a3a;--accent:#c9a227;--accent2:#8b5cf6;--text:#e8e0d0;--text2:#9990a8;--danger:#ef4444;--success:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:.8rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+.logo-sm{font-family:'Cinzel',serif;color:var(--accent);font-size:1.05rem;text-decoration:none;}
+.spacer{flex:1;}
+.user-dropdown{position:relative;}
+.dropdown-trigger{display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.3rem .5rem;border-radius:8px;transition:.15s;user-select:none;}
+.dropdown-trigger:hover{background:var(--surface2);}
+.dropdown-menu{position:absolute;right:0;top:calc(100% + .4rem);background:var(--surface);border:1px solid var(--border);border-radius:10px;min-width:200px;box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:50;opacity:0;pointer-events:none;transform:translateY(-6px);transition:.15s;}
+.dropdown-menu.open{opacity:1;pointer-events:all;transform:translateY(0);}
+.dropdown-item{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;font-size:.85rem;color:var(--text);text-decoration:none;transition:.15s;cursor:pointer;border:none;background:none;width:100%;text-align:left;}
+.dropdown-item:hover{background:var(--surface2);}
+.dropdown-item.danger{color:var(--danger);}
+.dropdown-sep{height:1px;background:var(--border);margin:.2rem 0;}
+.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#0e0e14;overflow:hidden;flex-shrink:0;}
+
+.page-wrap{max-width:860px;margin:0 auto;padding:2rem 1.5rem 4rem;flex:1;}
+.page-hero{text-align:center;margin-bottom:2rem;}
+.page-hero h1{font-family:'Cinzel',serif;font-size:1.5rem;color:var(--accent);}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.8rem;margin-bottom:2rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;}
+.stat-card .stat-num{font-family:'Cinzel',serif;font-size:2rem;color:var(--accent);font-weight:700;}
+.stat-card .stat-label{font-size:.75rem;color:var(--text2);margin-top:.2rem;}
+
+.section-title{font-family:'Cinzel',serif;font-size:.9rem;color:var(--accent);margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem;}
+
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.5rem;}
+table{width:100%;border-collapse:collapse;font-size:.82rem;}
+th{background:var(--surface2);color:var(--text2);font-weight:600;padding:.5rem .7rem;text-align:left;text-transform:uppercase;font-size:.7rem;letter-spacing:.04em;border-bottom:1px solid var(--border);}
+td{padding:.45rem .7rem;border-bottom:1px solid var(--border);color:var(--text2);}
+tr:last-child td{border-bottom:none;}
+td:first-child{color:var(--text);font-weight:500;}
+
+.loader{text-align:center;padding:3rem;color:var(--text2);}
+.spinner{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto .5rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.sys-tag{display:inline-block;font-size:.6rem;padding:.1rem .35rem;border-radius:4px;background:var(--surface2);color:var(--text2);margin-left:.3rem;}
+
+@media(max-width:600px){
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .page-wrap{padding:1rem;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo-sm" href="/lobby.html">⚔ VirtualTable RPG</a>
+  <div class="spacer"></div>
+  <div class="user-dropdown" id="userDropdown">
+    <div class="dropdown-trigger" onclick="toggleDropdown()">
+      <div class="avatar" id="userAvatar">?</div>
+      <span id="userName">…</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="dropdown-menu" id="dropdownMenu">
+      <a class="dropdown-item" href="/account.html">👤 Mon compte</a>
+      <a class="dropdown-item" href="/features.html">✨ Fonctionnalités</a>
+      <a class="dropdown-item" href="/releases.html">📋 Notes de version</a>
+      <a class="dropdown-item active" href="/stats.html">📊 Statistiques</a>
+      <div class="dropdown-sep"></div>
+      <a class="dropdown-item" id="adminLink" href="/admin.html" style="display:none">🛡 Administration</a>
+      <div class="dropdown-sep" id="adminSep" style="display:none"></div>
+      <button class="dropdown-item danger" onclick="logout()">🚪 Déconnexion</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <div class="page-hero">
+    <h1>📊 Statistiques</h1>
+    <p id="lastUpdate" style="font-size:.78rem;color:var(--text2);margin-top:.3rem;"></p>
+  </div>
+
+  <div class="loader" id="loader"><div class="spinner"></div>Chargement des stats…</div>
+  <div id="statsContent" style="display:none;">
+
+    <div class="stats-grid" id="totalsGrid"></div>
+
+    <div class="section-title">📅 Activité récente (30 jours)</div>
+    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Messages</th><th>🎲 Lancés</th><th>⭐ Critiques</th><th>💀 Fumbles</th></tr></thead><tbody id="dailyTable"></tbody></table></div>
+
+    <div class="section-title">🏆 Top 10 des joueurs</div>
+    <div class="table-wrap"><table><thead><tr><th>Joueur</th><th>Messages</th><th>🎲 Lancés de dés</th></tr></thead><tbody id="topUsersTable"></tbody></table></div>
+
+    <div class="section-title">🗺 Top 10 des campagnes</div>
+    <div class="table-wrap"><table><thead><tr><th>Campagne</th><th>Système</th><th>Messages</th><th>🎲 Lancés</th></tr></thead><tbody id="topCampaignsTable"></tbody></table></div>
+
+  </div>
+</div>
+
+<script src="/js/api.js?v=2"></script>
+<script>
+let _statsData = null;
+
+(async () => {
+  const token = getToken();
+  if (!token) { window.location.href = '/'; return; }
+  try {
+    const user = await API.auth.me();
+    setUser(user);
+    const av = document.getElementById('userAvatar');
+    if (user.avatar_url) av.innerHTML = `<img src="${user.avatar_url}" alt="${user.username}"/>`;
+    else av.textContent = user.username[0].toUpperCase();
+    document.getElementById('userName').textContent = user.username;
+    if (user.is_admin || user.tier === 'admin') {
+      document.getElementById('adminLink').style.display = '';
+      document.getElementById('adminSep').style.display = '';
+    }
+    await loadStats();
+  } catch { window.location.href = '/'; }
+})();
+
+async function loadStats() {
+  try {
+    const r = await fetch('/rpg/api/stats', {
+      headers: { 'Authorization': 'Bearer ' + getToken() }
+    });
+    _statsData = await r.json();
+    if (!r.ok) throw new Error(_statsData.error || 'Erreur');
+    renderStats();
+  } catch (e) {
+    document.getElementById('loader').innerHTML = `<span style="color:var(--danger)">Erreur : ${e.message}</span>`;
+  }
+}
+
+function renderStats() {
+  const d = _statsData;
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('statsContent').style.display = 'block';
+  document.getElementById('lastUpdate').textContent = 'Mise à jour en direct — données cumulées depuis le lancement';
+
+  // Totals grid
+  const totals = d.totals || {};
+  document.getElementById('totalsGrid').innerHTML = [
+    { num: totals.users, label: '👥 Joueurs inscrits' },
+    { num: totals.campaigns, label: '🗺 Campagnes créées' },
+    { num: totals.active_users, label: '🟢 En ligne (24h)' },
+    { num: totals.dice_rolls, label: '🎲 Lancés de dés' },
+    { num: totals.crit_success, label: '⭐ Critiques (20)' },
+    { num: totals.crit_fumble, label: '💀 Fumbles (1)' },
+    { num: totals.messages, label: '💬 Messages' },
+  ].map(s => `<div class="stat-card"><div class="stat-num">${s.num}</div><div class="stat-label">${s.label}</div></div>`).join('');
+
+  // Daily table
+  const daily = d.daily || [];
+  document.getElementById('dailyTable').innerHTML = daily.length
+    ? daily.map(row => `<tr><td>${row.day}</td><td>${row.messages}</td><td>${row.rolls}</td><td style="color:var(--success)">${row.crits}</td><td style="color:var(--danger)">${row.fumbles}</td></tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;padding:1rem;color:var(--text3);">Aucune donnée</td></tr>';
+
+  // Top users
+  const users = d.top_users || [];
+  document.getElementById('topUsersTable').innerHTML = users.length
+    ? users.map((u, i) => `<tr><td>${i + 1}. ${esc(u.username)}</td><td>${u.messages}</td><td>${u.rolls}</td></tr>`).join('')
+    : '<tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--text3);">Aucune donnée</td></tr>';
+
+  // Top campaigns
+  const camps = d.top_campaigns || [];
+  document.getElementById('topCampaignsTable').innerHTML = camps.length
+    ? camps.map(c => `<tr><td>${esc(c.name)}</td><td><span class="sys-tag">${esc(c.system || '—')}</span></td><td>${c.messages}</td><td>${c.rolls}</td></tr>`).join('')
+    : '<tr><td colspan="4" style="text-align:center;padding:1rem;color:var(--text3);">Aucune donnée</td></tr>';
+}
+
+function toggleDropdown() {
+  document.getElementById('dropdownMenu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!document.getElementById('userDropdown').contains(e.target))
+    document.getElementById('dropdownMenu').classList.remove('open');
+});
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function logout() { clearToken(); localStorage.removeItem('rpg_user'); window.location.href = '/'; }
+</script>
+</body>
+</html>

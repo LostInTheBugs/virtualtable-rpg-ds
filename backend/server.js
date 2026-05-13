@@ -41,6 +41,7 @@ app.use('/rpg/api/account',                  require('./routes/account'));
 app.use('/rpg/api/macros',                   require('./routes/macros'));
 app.use('/rpg/api/campaigns/:id/handouts',   require('./routes/handouts'));
 app.use('/rpg/api/campaigns/:id/tables',     require('./routes/tables'));
+app.use('/rpg/api/stats',                    require('./routes/stats'));
 
 // ── Init DB ──────────────────────────────────────────────────
 async function initDB() {
