@@ -77,6 +77,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:.
 .danger-section{border-color:rgba(239,68,68,.25);}
 .danger-section .section-title{color:var(--danger);}
 </style>
+<script src="/js/systems.js?v=1"></script>
 </head>
 <body>
 
@@ -155,12 +156,17 @@ function render() {
       <div class="fg-row">
         <div class="fg">
           <label>Système de jeu</label>
-          <input type="text" id="inp-system" value="${esc(campaign.system||'D&D 5e')}" maxlength="100" list="system-list"/>
+          <input type="text" id="inp-system" value="${esc(campaign.system||'D&D 5e')}" maxlength="100" list="system-list" oninput="showSystemDescSettings()"/>
+          <div id="sysDescSettings" style="font-size:.73rem;color:var(--text2);padding:.3rem 0;"></div>
           <datalist id="system-list">
             <option value="D&amp;D 5e"/><option value="Pathfinder 2e"/>
-            <option value="Call of Cthulhu"/><option value="Starfinder"/>
-            <option value="Warhammer Fantasy"/><option value="Vampire: The Masquerade"/>
-            <option value="Cyberpunk Red"/><option value="Savage Worlds"/>
+            <option value="Warhammer Fantasy"/><option value="Call of Cthulhu"/>
+            <option value="Starfinder"/><option value="Shadowrun"/>
+            <option value="Vampire: The Masquerade"/><option value="Cyberpunk Red"/>
+            <option value="Savage Worlds"/><option value="Cats! La Mascarade"/>
+            <option value="Dune"/><option value="Star Wars"/>
+            <option value="Le Seigneur des Anneaux"/><option value="Paranoia"/>
+            <option value="Tomorrow City"/><option value="Autre"/>
           </datalist>
         </div>
         <div class="fg">
@@ -327,6 +333,14 @@ async function regenInvite() {
   } catch (e) {
     showStatus('Erreur lors de la régénération', true);
   }
+}
+
+function showSystemDescSettings() {
+  const inp = document.getElementById('inp-system');
+  const descEl = document.getElementById('sysDescSettings');
+  if (!inp || !descEl) return;
+  const sys = getSystem(inp.value);
+  descEl.innerHTML = sys && sys.desc ? `<strong>${sys.label}</strong> — ${sys.desc}` : '';
 }
 
 async function saveSettings() {

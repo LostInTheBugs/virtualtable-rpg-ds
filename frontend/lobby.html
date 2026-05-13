@@ -194,6 +194,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 .upload-field input[type=url],.upload-field input[type=text]{flex:1;}
 .upload-file-btn{display:inline-flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:7px;padding:.45rem .65rem;cursor:pointer;font-size:.9rem;transition:.15s;flex-shrink:0;line-height:1;}
 .upload-file-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.sys-desc{font-size:.73rem;color:var(--text2);padding:.35rem .6rem;margin-top:.25rem;background:var(--surface2);border-radius:6px;border:1px solid var(--border);min-height:1.8rem;transition:.2s;}
 .upload-file-btn.loading{opacity:.5;cursor:default;}
 </style>
 </head>
@@ -265,13 +266,18 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
         </div>
         <div class="form-group">
           <label>Système de jeu</label>
-          <select id="c-system">
+          <select id="c-system" onchange="showSystemDesc()">
             <option>D&amp;D 5e</option><option>Pathfinder 2e</option>
             <option>Warhammer Fantasy</option><option>Call of Cthulhu</option>
             <option>Starfinder</option><option>Shadowrun</option>
             <option>Vampire: The Masquerade</option><option>Cyberpunk Red</option>
-            <option>Savage Worlds</option><option>Autre</option>
+            <option>Savage Worlds</option>
+            <option>Cats! La Mascarade</option><option>Dune</option>
+            <option>Star Wars</option><option>Le Seigneur des Anneaux</option>
+            <option>Paranoia</option><option>Tomorrow City</option>
+            <option>Autre</option>
           </select>
+          <div id="sysDesc" class="sys-desc">Sélectionnez un système pour voir sa description.</div>
         </div>
         <div class="form-group">
           <label>Description (optionnel)</label>
@@ -1068,6 +1074,14 @@ async function doJoin(e) {
     selectCampaign(camp.id);
   } catch (err) { alertEl.textContent = err.message; alertEl.style.display = 'block'; }
   btn.disabled = false; btn.textContent = 'Rejoindre';
+}
+
+function showSystemDesc() {
+  const sel = document.getElementById('c-system');
+  const descEl = document.getElementById('sysDesc');
+  if (!sel || !descEl) return;
+  const sys = getSystem(sel.value);
+  descEl.innerHTML = sys && sys.desc ? `<strong>${sys.label}</strong> — ${sys.desc}` : 'Sélectionnez un système pour voir sa description.';
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }

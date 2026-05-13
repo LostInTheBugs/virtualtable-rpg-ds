@@ -9,6 +9,7 @@ const RPG_SYSTEMS = {
   // ── D&D 5e ──────────────────────────────────────────────────
   "D&D 5e": {
     label: "D&D 5e",
+    desc: "Le plus célèbre des jeux de rôle fantasy. Personnalisation poussée via classes, sous-classes, sorts et dons. Système de combat tactique au tour par tour.",
     stats: [
       { key: 'str', label: 'FOR',  default: 10 },
       { key: 'dex', label: 'DEX',  default: 10 },
@@ -46,6 +47,7 @@ const RPG_SYSTEMS = {
   // ── Pathfinder 2e ───────────────────────────────────────────
   "Pathfinder 2e": {
     label: "Pathfinder 2e",
+    desc: "Successeur spirituel de D&D 3.5. Système très tactique avec trois actions par tour, classes et archétypes variés.",
     stats: [
       { key: 'str', label: 'FOR',  default: 10 },
       { key: 'dex', label: 'DEX',  default: 10 },
@@ -81,6 +83,7 @@ const RPG_SYSTEMS = {
   // ── Warhammer Fantasy ───────────────────────────────────────
   "Warhammer Fantasy": {
     label: "Warhammer Fantasy",
+    desc: "Univers sombre et brutal du Vieux Monde. Carrières évolutives, combat mortel, magie dangereuse. Système de pourcentages (d100).",
     stats: [
       { key: 'ws',  label: 'CC',  default: 30 },
       { key: 'bs',  label: 'CT',  default: 30 },
@@ -123,6 +126,7 @@ const RPG_SYSTEMS = {
   // ── Call of Cthulhu ─────────────────────────────────────────
   "Call of Cthulhu": {
     label: "Call of Cthulhu",
+    desc: "Enquête horrifique dans l'univers de H.P. Lovecraft. Système de pourcentages (d100), santé mentale (SAN), mythe de Cthulhu. Très orienté enquête et rôle.",
     stats: [
       { key: 'str', label: 'FOR', default: 50 },
       { key: 'con', label: 'CON', default: 50 },
@@ -168,6 +172,7 @@ const RPG_SYSTEMS = {
   // ── Starfinder ──────────────────────────────────────────────
   "Starfinder": {
     label: "Starfinder",
+    desc: "D&D 5e dans l'espace. Créatures aliens, vaisseaux spatiaux, technologie avancée et magie (mysticisme). Système de stamina et résolution.",
     stats: [
       { key: 'str', label: 'FOR',  default: 10 },
       { key: 'dex', label: 'DEX',  default: 10 },
@@ -198,6 +203,7 @@ const RPG_SYSTEMS = {
   // ── Shadowrun ───────────────────────────────────────────────
   "Shadowrun": {
     label: "Shadowrun",
+    desc: "Cyberpunk-fantasy. Hackers, mages, samouraïs et elfes dans un futur dystopique. Système de pool de dés (d6), essence et magie matricielle.",
     stats: [
       { key: 'bod', label: 'BOD', default: 3 },
       { key: 'agi', label: 'AGI', default: 3 },
@@ -233,6 +239,7 @@ const RPG_SYSTEMS = {
   // ── Vampire: The Masquerade ─────────────────────────────────
   "Vampire: The Masquerade": {
     label: "Vampire: The Masquerade",
+    desc: "Jeu de rôle narratif dans le Monde des Ténèbres. Incarnez un vampire, gérez votre humanité, vos disciplines et votre sang. Système de pool de d10.",
     stats: [
       { key: 'str', label: 'FOR', default: 1 },
       { key: 'dex', label: 'DEX', default: 1 },
@@ -268,6 +275,7 @@ const RPG_SYSTEMS = {
   // ── Cyberpunk Red ───────────────────────────────────────────
   "Cyberpunk Red": {
     label: "Cyberpunk Red",
+    desc: "Dark future city. Cyber-implantations, armes à feu, netrunning et rockers. Système d10 avec explosion de dés, armure SP.",
     stats: [
       { key: 'int', label: 'INT', default: 5 },
       { key: 'ref', label: 'REF', default: 5 },
@@ -307,6 +315,7 @@ const RPG_SYSTEMS = {
   // ── Savage Worlds ────────────────────────────────────────────
   "Savage Worlds": {
     label: "Savage Worlds",
+    desc: "Système générique rapide et nerveux (Fast! Furious! Fun!). Dés dégressifs par compétence, cartes pour l'initiative, bénéfices et handicaps.",
     stats: [
       { key: 'agi', label: 'AGI', default: 4 },
       { key: 'sma', label: 'INT', default: 4 },
@@ -334,9 +343,187 @@ const RPG_SYSTEMS = {
     money: ['po','pa','pc'],
   },
 
+  // ── Cats! La Mascarade ─────────────────────────────────────
+  "Cats! La Mascarade": {
+    label: "Cats! La Mascarade",
+    desc: "Jeu de rôle français où les PJ sont des chats vivant dans l'Ombre. Agilité, charme félin, griffes et mystères. Système narratif léger.",
+    stats: [
+      { key: 'agi', label: 'AGI', default: 3 },
+      { key: 'per', label: 'PER', default: 3 },
+      { key: 'cha', label: 'CHA', default: 3 },
+      { key: 'sag', label: 'SAG', default: 3 },
+      { key: 'for', label: 'FOR', default: 3 },
+    ],
+    skills: [
+      { name: 'Acrobaties', attr: 'agi' }, { name: 'Discrétion', attr: 'agi' },
+      { name: 'Charme', attr: 'cha' }, { name: 'Perception', attr: 'per' },
+      { name: 'Intuition', attr: 'sag' }, { name: 'Esquive', attr: 'agi' },
+      { name: 'Bagarre', attr: 'for' }, { name: 'Investigation', attr: 'per' },
+    ],
+    races: ['Chat de gouttière','Siamois','Persan','Maine Coon','Bengal','Sphynx','Européen'],
+    classes: ['Vagabond','Mascotte','Chasseur','Voyant','Protecteur','Espion'],
+    hasSpells: false,
+    hasSubclass: false,
+    hasProficiency: false,
+    hasBackground: true,
+    fields: ['race','class','level','hp','ac','initiative','luck'],
+  },
+
+  // ── Dune: Adventures in the Imperium ─────────────────────────
+  "Dune": {
+    label: "Dune",
+    desc: "Univers de Frank Herbert. Politique, intrigues et combat dans l'Imperium. Système 2d20 avec momentum, avantages et compétences de Maison.",
+    stats: [
+      { key: 'str', label: 'FOR', default: 8 },
+      { key: 'agi', label: 'AGI', default: 8 },
+      { key: 'vol', label: 'VOL', default: 8 },
+      { key: 'emp', label: 'EMP', default: 8 },
+      { key: 'rai', label: 'RAI', default: 8 },
+    ],
+    skills: [
+      { name: 'Combat', attr: 'str' }, { name: 'Déplacement', attr: 'agi' },
+      { name: 'Discrétion', attr: 'agi' }, { name: 'Guerilla', attr: 'str' },
+      { name: 'Commandement', attr: 'vol' }, { name: 'Diplomatie', attr: 'emp' },
+      { name: 'Artisanat', attr: 'rai' }, { name: 'Connaissance', attr: 'rai' },
+      { name: 'Perception', attr: 'vol' }, { name: 'Persuasion', attr: 'emp' },
+      { name: 'Pilotage', attr: 'agi' }, { name: 'Savoir', attr: 'rai' },
+      { name: 'Société', attr: 'emp' }, { name: 'Survie', attr: 'vol' },
+    ],
+    races: ['Humain','Bene Gesserit','Mentat','Sardaukar','Fremen','Navigateur','Ixien'],
+    classes: ['Guerrier','Diplomate','Mentat','Bene Gesserit','Pilote','Savant','Noble'],
+    hasSpells: false,
+    hasSubclass: false,
+    hasProficiency: false,
+    hasBackground: true,
+    fields: ['race','class','level','hp','ac','speed','initiative','inventory'],
+    money: ['Solaris'],
+  },
+
+  // ── Star Wars (FFG / Narrative Dice) ──────────────────────
+  "Star Wars": {
+    label: "Star Wars",
+    desc: "Galaxie lointaine, très lointaine. Système aux dés narratifs (Boost/Setback/Advantage/Threat). Trois sagas : Rebelles, Contrebandiers ou Jedi.",
+    stats: [
+      { key: 'brw', label: 'BRU', default: 2 },
+      { key: 'agi', label: 'AGI', default: 2 },
+      { key: 'int', label: 'INT', default: 2 },
+      { key: 'cun', label: 'RUS', default: 2 },
+      { key: 'wil', label: 'VOL', default: 2 },
+      { key: 'prs', label: 'PRE', default: 2 },
+    ],
+    skills: [
+      { name: 'Athlétisme', attr: 'brw' }, { name: 'Bagarre', attr: 'brw' },
+      { name: 'Conduite', attr: 'agi' }, { name: 'Discrétion', attr: 'agi' },
+      { name: 'Gunnery', attr: 'agi' }, { name: 'Mêlée', attr: 'brw' },
+      { name: 'Pilotage', attr: 'agi' }, { name: 'Tir', attr: 'agi' },
+      { name: 'Astrogation', attr: 'int' }, { name: 'Informatique', attr: 'int' },
+      { name: 'Investigation', attr: 'int' }, { name: 'Médecine', attr: 'int' },
+      { name: 'Perception', attr: 'cun' }, { name: 'Pistage', attr: 'cun' },
+      { name: 'Charme', attr: 'prs' }, { name: 'Intimidation', attr: 'prs' },
+      { name: 'Persuasion', attr: 'prs' }, { name: 'Tromperie', attr: 'cun' },
+      { name: 'Commandement', attr: 'wil' }, { name: 'Survie', attr: 'wil' },
+      { name: 'Force', attr: 'wil' },
+    ],
+    races: ['Humain','Wookiee','Twi lek','Droid','Zabrak','Bothan','Mon Calamari','Rodian',
+      'Trandoshan','Céréen','Ewok','Mandalorien','Chiss'],
+    classes: ['Garde','Explorateur','Diplomate','Mystique','Contrebandier','Mécanicien','Pilote','Soldat','Jedi','Sith'],
+    hasSpells: true,
+    hasSubclass: true,
+    hasBackground: true,
+    fields: ['race','class','level','hp','ac','speed','initiative','proficiency','background','spells','inventory'],
+    money: ['Crédit'],
+  },
+
+  // ── Le Seigneur des Anneaux (The One Ring) ─────────────────
+  "Le Seigneur des Anneaux": {
+    label: "Le Seigneur des Anneaux",
+    desc: "Terre du Milieu. Compagnie de Héros, ombre du Mordor, conseils et voyages. Système de dés de succès avec Courage et Ombre.",
+    stats: [
+      { key: 'str', label: 'COR', default: 3 },
+      { key: 'agi', label: 'AGA', default: 3 },
+      { key: 'vit', label: 'VIT', default: 3 },
+      { key: 'coeur',label: 'CŒU',default: 3 },
+      { key: 'sag', label: 'SAG', default: 3 },
+    ],
+    skills: [
+      { name: 'Archerie', attr: 'agi' }, { name: 'Athlétisme', attr: 'str' },
+      { name: 'Combat', attr: 'str' }, { name: 'Chant', attr: 'coeur' },
+      { name: 'Courtoisie', attr: 'coeur' }, { name: 'Étiquette', attr: 'coeur' },
+      { name: 'Furtivité', attr: 'agi' }, { name: 'Guérison', attr: 'sag' },
+      { name: 'Lore', attr: 'sag' }, { name: 'Lutte', attr: 'str' },
+      { name: 'Navigation', attr: 'sag' }, { name: 'Pistage', attr: 'vit' },
+      { name: 'Survie', attr: 'vit' }, { name: 'Voyage', attr: 'vit' },
+    ],
+    races: ['Humain','Elfe','Nain','Hobbit','Bardien','Béornide','Homme du Sud','Rohirrim','Gondorien'],
+    classes: ['Guerrier','Explorateur','Voyageur','Ménéstrel','Magicien','Soigneur'],
+    hasSpells: true,
+    hasSubclass: false,
+    hasProficiency: false,
+    hasBackground: true,
+    fields: ['race','class','level','hp','ac','speed','initiative','background','spells','inventory'],
+    money: ['po'],
+  },
+
+  // ── Paranoia ──────────────────────────────────────────────
+  "Paranoia": {
+    label: "Paranoia",
+    desc: "Humour dystopique dans un complexe souterrain dirigé par l'Amical Ordinateur. Trahison, clones, mutants et société secrètes. Système d100.",
+    stats: [
+      { key: 'vio', label: 'VIOL', default: 5 },
+      { key: 'cha', label: 'CHAR', default: 5 },
+      { key: 'sav', label: 'SAVO', default: 5 },
+      { key: 'meca',label: 'MÉCA',default: 5 },
+    ],
+    skills: [
+      { name: 'Armes à énergie', attr: 'vio' }, { name: 'Bagarre', attr: 'vio' },
+      { name: 'Conduite', attr: 'meca' }, { name: 'Électronique', attr: 'meca' },
+      { name: 'Discrétion', attr: 'cha' }, { name: 'Sécurité', attr: 'sav' },
+      { name: 'Psychologie', attr: 'sav' }, { name: 'Persuasion', attr: 'cha' },
+      { name: 'Déguisement', attr: 'cha' }, { name: 'Armes de poing', attr: 'vio' },
+    ],
+    races: ['Humain','Clone Alpha','Clone Beta','Clone Gamma','Clone Delta'],
+    classes: ['Sécurité','Technologie','Administration','Médical','Psychique','Espion'],
+    hasSpells: false,
+    hasSubclass: false,
+    hasProficiency: false,
+    hasBackground: true,
+    fields: ['race','class','level','hp','ac','speed','security_clearance','treason'],
+    money: ['Crédit'],
+  },
+
+  // ── Tomorrow City ─────────────────────────────────────────
+  "Tomorrow City": {
+    label: "Tomorrow City",
+    desc: "Jeu de rôle français cyber-noir. Megacorporations, implants cybernétiques et pluie acide. Système narratif avec dés de conflit.",
+    stats: [
+      { key: 'phy', label: 'PHY', default: 5 },
+      { key: 'men', label: 'MEN', default: 5 },
+      { key: 'soc', label: 'SOC', default: 5 },
+      { key: 'ins', label: 'INS', default: 5 },
+    ],
+    skills: [
+      { name: 'Combat', attr: 'phy' }, { name: 'Athlétisme', attr: 'phy' },
+      { name: 'Discrétion', attr: 'phy' }, { name: 'Tir', attr: 'phy' },
+      { name: 'Conduite', attr: 'men' }, { name: 'Informatique', attr: 'men' },
+      { name: 'Médecine', attr: 'men' }, { name: 'Investigation', attr: 'men' },
+      { name: 'Persuasion', attr: 'soc' }, { name: 'Réseau', attr: 'soc' },
+      { name: 'Intimidation', attr: 'soc' }, { name: 'Étiquette', attr: 'soc' },
+      { name: 'Perception', attr: 'ins' }, { name: 'Survie', attr: 'ins' },
+    ],
+    races: ['Humain'],
+    classes: ['Exécuteur','Pirate','Médic','Fixeur','Journaliste','Détective','Policier'],
+    hasSpells: false,
+    hasSubclass: false,
+    hasProficiency: false,
+    hasBackground: true,
+    fields: ['race','class','level','hp','ac','initiative','cyberdeck','inventory'],
+    money: ['¥'],
+  },
+
   // ── Autre (générique) ───────────────────────────────────────
   "Autre": {
     label: "Autre",
+    desc: "Système de jeu non listé. Utilisez pour tout jeu ne figurant pas dans cette liste (Chroniques Oubliées, Légendes, etc.).",
     stats: [
       { key: 'stat1', label: 'Stat 1', default: 10 },
       { key: 'stat2', label: 'Stat 2', default: 10 },
