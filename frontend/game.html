@@ -3793,6 +3793,36 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
     const dt = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
 
+    // Collision entre dés
+    const COLLIDE_DIST = 1.0;
+    for (let i = 0; i < dice3DMeshes.length; i++) {
+      for (let j = i + 1; j < dice3DMeshes.length; j++) {
+        const a = dice3DMeshes[i];
+        const b = dice3DMeshes[j];
+        const dx = b.mesh.position.x - a.mesh.position.x;
+        const dz = b.mesh.position.z - a.mesh.position.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist < COLLIDE_DIST && dist > 0.001) {
+          const overlap = (COLLIDE_DIST - dist) / 2;
+          const pushX = (dx / dist) * overlap;
+          const pushZ = (dz / dist) * overlap;
+          a.mesh.position.x -= pushX;
+          a.mesh.position.z -= pushZ;
+          b.mesh.position.x += pushX;
+          b.mesh.position.z += pushZ;
+          // Exchange velocities for a bounce effect
+          const relV = (a.vx - b.vx) * (dx / dist) + (a.vz - b.vz) * (dz / dist);
+          if (relV > 0) {
+            const impulse = relV * 0.4;
+            a.vx -= impulse * (dx / dist);
+            a.vz -= impulse * (dz / dist);
+            b.vx += impulse * (dx / dist);
+            b.vz += impulse * (dz / dist);
+          }
+        }
+      }
+    }
+
     let allSettled = true;
     for (const d of dice3DMeshes) {
       // Gravity
