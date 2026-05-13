@@ -353,11 +353,19 @@ const RPG_SYSTEMS = {
   },
 };
 
+// ── Alias de compatibilité (campagnes créées avant renommage) ─
+const SYSTEM_ALIASES = {
+  'Warhammer': 'Warhammer Fantasy',
+  'Vampire':  'Vampire: The Masquerade',
+  'Cyberpunk': 'Cyberpunk Red',
+};
+
 // ── Helpers ──────────────────────────────────────────────────
 
 /** Retourne la définition d'un système, avec fallback "Autre" */
 function getSystem(systemName) {
-  return RPG_SYSTEMS[systemName] || RPG_SYSTEMS["Autre"];
+  const resolved = SYSTEM_ALIASES[systemName] || systemName;
+  return RPG_SYSTEMS[resolved] || RPG_SYSTEMS["Autre"];
 }
 
 /** Retourne la liste des stats pour un système */
