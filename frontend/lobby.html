@@ -478,6 +478,64 @@ function systemRaces()  { return getSystemRaces(currentCampaignSystem); }
 function systemClasses() { return getSystemClasses(currentCampaignSystem); }
 function systemDef()    { return getSystem(currentCampaignSystem); }
 
+// ── Combo-select helpers ────────────────────────────────────────
+function buildLobbyComboOptions(selId, options, currentVal) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  sel.innerHTML = '';
+  let hasMatch = false;
+  options.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt; o.textContent = opt;
+    if (opt === currentVal) { o.selected = true; hasMatch = true; }
+    sel.appendChild(o);
+  });
+  const custom = document.createElement('option');
+  custom.value = '__custom__'; custom.textContent = '✏ Saisie libre…';
+  if (!hasMatch && currentVal) custom.selected = true;
+  sel.appendChild(custom);
+}
+
+function onLobbyComboSel(field) {
+  const sel   = document.getElementById(`ch-${field}-sel`);
+  const input = document.getElementById(`ch-${field}`);
+  if (!sel || !input) return;
+  if (sel.value === '__custom__') {
+    input.style.display = '';
+    input.focus();
+  } else {
+    input.style.display = 'none';
+    input.value = '';
+  }
+}
+
+function loadLobbyComboValue(field, value) {
+  const sel   = document.getElementById(`ch-${field}-sel`);
+  const input = document.getElementById(`ch-${field}`);
+  if (!sel) return;
+  if (!value) { sel.selectedIndex = 0; if (input) input.style.display = 'none'; return; }
+  let found = false;
+  for (const opt of sel.options) {
+    if (opt.value === value && opt.value !== '__custom__') { found = true; break; }
+  }
+  if (found) {
+    sel.value = value;
+    if (input) { input.style.display = 'none'; input.value = ''; }
+  } else {
+    sel.value = '__custom__';
+    if (input) { input.style.display = ''; input.value = value; }
+  }
+}
+
+function getLobbyComboValue(field) {
+  const sel   = document.getElementById(`ch-${field}-sel`);
+  const input = document.getElementById(`ch-${field}`);
+  if (!sel) return '';
+  if (input && input.style.display !== 'none') return input.value.trim();
+  if (sel.value === '__custom__') return input ? input.value.trim() : '';
+  return sel.value;
+}
+
 let currentCampaignId = null;
 let currentCampaignRole = 'player';
 let editingCharId = null;
