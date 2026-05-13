@@ -501,6 +501,63 @@ module.exports = function setupSocket(io) {
       }
     });
 
+    // ── CIBLAGE ──────────────────────────────────────────────
+    // Stocké en mémoire : { campaign_id: [{ from_token_id, to_token_id, player_id, player_name, revealed }] }
+    const campaignTargets = new Map();
+
+    socket.on('set_target', ({ campaign_id, from_token_id, to_token_id, to_token_name }) => {
+      if (!socket.user) return;
+      if (!campaignTargets.has(campaign_id)) campaignTargets.set(campaign_id, []);
+      const targets = campaignTargets.get(campaign_id);
+      // Supprimer l'ancienne cible du même joueur pour le même from_token
+      const idx = targets.findIndex(t => t.player_id === socket.user.id && t.from_token_id === from_token_id);
+      const target = { from_token_id, to_token_id, to_token_name: to_token_name || 'Inconnu', player_id: socket.user.id, player_name: socket.user.username, revealed: false };
+      if (idx >= 0) targets[idx] = target;
+      else targets.push(target);
+      // Envoyer au MJ toutes les cibles
+      if (socket.role === 'gm') {
+        io.to(campaign_id).emit('targets_state', targets.map(t => ({ ...t, player_name: t.player_id === socket.user.id ? t.player_name : t.player_name })));
+      } else {
+        // Joueur : voir ses propres cibles, le MJ voit tout
+        socket.emit('targets_state', targets.filter(t => t.player_id === socket.user.id || t.revealed));
+        const gmSockets = [...io.sockets.adapter.rooms.get(campaign_id) || []]
+          .map(id => io.sockets.sockets.get(id)).filter(s => s?.role === 'gm');
+        gmSockets.forEach(gmSocket => gmSocket.emit('targets_state', targets));
+      }
+    });
+
+    socket.on('clear_target', ({ campaign_id, from_token_id }) => {
+      if (!socket.user) return;
+      if (campaignTargets.has(campaign_id)) {
+        const targets = campaignTargets.get(campaign_id);
+        const cleared = targets.filter(t => !(t.player_id === socket.user.id && t.from_token_id === from_token_id));
+        campaignTargets.set(campaign_id, cleared);
+        // Notifier le MJ
+        const gmSockets = [...io.sockets.adapter.rooms.get(campaign_id) || []]
+          .map(id => io.sockets.sockets.get(id)).filter(s => s?.role === 'gm');
+        gmSockets.forEach(gmSocket => gmSocket.emit('targets_state', cleared));
+        socket.emit('targets_state', cleared.filter(t => t.player_id === socket.user.id || t.revealed));
+      }
+    });
+
+    socket.on('reveal_targets_on_roll', ({ campaign_id, from_token_id, dice_data }) => {
+      if (!socket.user || !campaignTargets.has(campaign_id)) return;
+      const targets = campaignTargets.get(campaign_id);
+      // Trouver les cibles du joueur pour ce token
+      const playerTargets = targets.filter(t => t.player_id === socket.user.id && t.from_token_id === from_token_id);
+      for (const t of playerTargets) {
+        // Vérifier si d'autres ennemis sont adjacents à la cible
+        // La vérification est faite côté client, on reçoit l'info
+        t.revealed = true;
+      }
+      // Mettre à jour tous les joueurs
+      const gmSockets = [...io.sockets.adapter.rooms.get(campaign_id) || []]
+        .map(id => io.sockets.sockets.get(id)).filter(s => s?.role === 'gm');
+      gmSockets.forEach(gmSocket => gmSocket.emit('targets_state', targets));
+      socket.to(campaign_id).emit('targets_state', targets.filter(t => t.revealed));
+      socket.emit('targets_state', targets.filter(t => t.player_id === socket.user.id || t.revealed));
+    });
+
     // ── HANDOUTS (broadcast partage) ─────────────────────────
     socket.on('handout_share_broadcast', ({ campaign_id, handout }) => {
       if (socket.role !== 'gm') return;

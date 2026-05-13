@@ -1466,6 +1466,7 @@ body.table-mode .zone-subtoolbar{display:none !important;}
   <div class="cond-grid" id="condGrid"></div>
   <hr class="cond-sep"/>
   <button class="cond-delete" id="combatAttackBtn" style="display:none;color:#ef4444;border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.08);" onclick="openCombatAttack()">⚔ Attaquer ce token</button>
+  <button class="cond-btn" id="targetBtn" style="display:none;margin-top:.3rem;" onclick="setTarget()">🎯 Cibler ce token</button>
   <hr class="cond-sep" id="combatSep" style="display:none;margin:.2rem 0;"/>
   <!-- Section MJ : réassigner + supprimer -->
   <div id="condGmSection" style="display:none;">
@@ -2525,6 +2526,7 @@ function castSidebarSpell(name, baseLevel, slotLevel) {
       character_name: activeChar.name, label: `Dégâts — ${name}`,
     });
   }
+  revealTargetsAfterRoll();
 }
 
 // ── Spell info tooltip (right-click) ──────────────────────────
@@ -2599,6 +2601,29 @@ function hideSpellHoverTip() {
   if (tip) tip.classList.remove('show');
 }
 
+function revealTargetsAfterRoll() {
+  if (!socket || !selectedToken || !campaignTargets?.length) return;
+  // Vérifier si on a des cibles et révéler
+  const myTarget = myTargets?.find(t => t.from_token_id === selectedToken);
+  if (!myTarget) return;
+  // Vérifier si d'autres ennemis sont adjacents
+  const toToken = gameTokens.find(tk => tk.id === myTarget.to_token_id);
+  if (!toToken) return;
+  const gs = currentMap?.grid_size || 50;
+  const nearbyEnemy = gameTokens.some(tk =>
+    tk.id !== myTarget.to_token_id &&
+    Math.abs(tk.x - toToken.x) <= gs * 1.5 &&
+    Math.abs(tk.y - toToken.y) <= gs * 1.5
+  );
+  if (!nearbyEnemy) {
+    socket.emit('reveal_targets_on_roll', {
+      campaign_id: CAMPAIGN_ID,
+      from_token_id: selectedToken,
+      dice_data: {},
+    });
+  }
+}
+
 function sendQuickRoll(label, dice, modifier, charName) {
   if (!socket) return;
   socket.emit('dice_roll', {
@@ -2607,6 +2632,7 @@ function sendQuickRoll(label, dice, modifier, charName) {
     character_name: charName,
     label,
   });
+  revealTargetsAfterRoll();
 }
 
 function updateHPBar() {
@@ -4268,6 +4294,7 @@ function _renderFrame() {
   drawPathPreview();
   drawPings();
   drawStrokesOnMap();
+  drawTargetLines();
 }
 
 // ── Grille ────────────────────────────────────────────────────
@@ -4826,6 +4853,51 @@ function clearAllStrokes() {
   drawMap();
   if (socket && currentMap) {
     socket.emit('draw_clear', { campaign_id: CAMPAIGN_ID, map_id: currentMap.id });
+  }
+}
+
+// ── Ciblage ──────────────────────────────────────────────────
+function drawTargetLines() {
+  if (!campaignTargets?.length) return;
+  for (const t of campaignTargets) {
+    if (!t.revealed && myRole !== 'gm' && t.player_id !== getUser()?.id) continue;
+    const fromToken = gameTokens.find(tk => tk.id === t.from_token_id);
+    const toToken = gameTokens.find(tk => tk.id === t.to_token_id);
+    if (!fromToken || !toToken) continue;
+    const from = worldToScreen(fromToken.x, fromToken.y);
+    const to = worldToScreen(toToken.x, toToken.y);
+    ctx.save();
+    // Line style: solid for GM/revealed, dashed for own targets
+    const isOwn = t.player_id === getUser()?.id;
+    const alpha = (myRole === 'gm' || t.revealed) ? 0.8 : 0.5;
+    ctx.strokeStyle = isOwn ? `rgba(201,162,39,${alpha})` : `rgba(139,92,246,${alpha})`;
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash(myRole === 'gm' || t.revealed ? [] : [6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+    // Arrow head
+    const angle = Math.atan2(to.y - from.y, to.x - from.x);
+    const headLen = 10;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(to.x, to.y);
+    ctx.lineTo(to.x - headLen * Math.cos(angle - 0.4), to.y - headLen * Math.sin(angle - 0.4));
+    ctx.lineTo(to.x - headLen * Math.cos(angle + 0.4), to.y - headLen * Math.sin(angle + 0.4));
+    ctx.closePath();
+    ctx.fillStyle = isOwn ? `rgba(201,162,39,${alpha})` : `rgba(139,92,246,${alpha})`;
+    ctx.fill();
+    // Player label
+    if (myRole === 'gm') {
+      ctx.font = '9px Inter, sans-serif';
+      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx.textAlign = 'center';
+      const midX = (from.x + to.x) / 2;
+      const midY = (from.y + to.y) / 2 - 10;
+      ctx.fillText(t.player_name || '?', midX, midY);
+    }
+    ctx.restore();
   }
 }
 
@@ -8193,6 +8265,9 @@ function showConditionMenu(token, ex, ey) {
   const hasAttacker = selectedToken && selectedToken !== token.id;
   attackBtn.style.display = hasAttacker ? '' : 'none';
   combatSep.style.display  = hasAttacker ? '' : 'none';
+  // Target button
+  const targetBtn = document.getElementById('targetBtn');
+  if (targetBtn) targetBtn.style.display = hasAttacker ? '' : 'none';
 
   // Section GM : conditions, reassign, supprimer
   const gmSection = document.getElementById('condGmSection');
@@ -8338,6 +8413,17 @@ function getTokenAttacks(token) {
 }
 
 /** Ouvre le panneau d'attaque : attaquant = selectedToken, cible = conditionMenuToken */
+function setTarget() {
+  if (!conditionMenuToken || !selectedToken) return;
+  const fromId = selectedToken;
+  const toId = conditionMenuToken.id;
+  const toName = conditionMenuToken.label || conditionMenuToken.char_name || 'Inconnu';
+  hideConditionMenu();
+  if (socket) {
+    socket.emit('set_target', { campaign_id: CAMPAIGN_ID, from_token_id: fromId, to_token_id: toId, to_token_name: toName });
+  }
+}
+
 function openCombatAttack() {
   hideConditionMenu();
   if (!conditionMenuToken) return;
@@ -10119,6 +10205,24 @@ function setupGameSocket(socket) {
     if (username !== getUser()?.username) {
       addMapPing(x, y, username);
     }
+  });
+
+  // ── Ciblage ──
+  const campaignTargets = []; // { from_token_id, to_token_id, to_token_name, player_id, player_name, revealed }
+  let myTargets = []; // cibles du joueur local
+
+  socket.on('targets_state', (targets) => {
+    campaignTargets.length = 0;
+    if (!myRole || myRole === 'gm') {
+      // MJ voit tout
+      campaignTargets.push(...targets);
+    } else {
+      // Joueur : ne voit que les cibles révélées ou les siennes
+      const myId = getUser()?.id;
+      campaignTargets.push(...targets.filter(t => t.revealed || t.player_id === myId));
+      myTargets = targets.filter(t => t.player_id === myId);
+    }
+    drawMap();
   });
 
   // ── Réception dessins distants ──
