@@ -514,6 +514,29 @@ function onLobbyComboSel(field) {
     input.style.display = 'none';
     input.value = '';
   }
+  // Auto-portrait quand on sélectionne une race
+  if (field === 'race' && sel.value !== '__custom__' && sel.value) {
+    const race = sel.value;
+    // Carte de correspondance race → fichier image
+    const raceImages = {
+      'Chat de gouttière': 'cats-vagabond',
+      'Siamois': 'cats-siamois',
+      'Persan': 'cats-persan',
+      'Maine Coon': 'cats-maine-coon',
+      'Bengal': 'cats-bengal',
+      'Sphynx': 'cats-sphynx',
+      'Européen': 'cats-europeen',
+    };
+    const imgKey = raceImages[race];
+    if (imgKey) {
+      const portraitUrl = `/img/${imgKey}-portrait.jpg`;
+      const portraitInput = document.getElementById('ch-portrait');
+      if (portraitInput) {
+        portraitInput.value = portraitUrl;
+        updatePortraitPreview();
+      }
+    }
+  }
 }
 
 function loadLobbyComboValue(field, value) {
