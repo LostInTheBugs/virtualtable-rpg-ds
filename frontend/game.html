@@ -3764,11 +3764,16 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
 
   function setupGeomGroups(geom, numFaces) {
     const idx = geom.getIndex();
-    if (!idx) return false;
-    const triCount = idx.count / 3;
+    let triCount;
+    if (idx) {
+      triCount = idx.count / 3;
+    } else {
+      // Non-indexed geometry: each consecutive 3 positions = 1 face
+      triCount = geom.attributes.position.count / 3;
+    }
     if (triCount < numFaces) return false;
     geom.clearGroups();
-    for (let f = 0; f < numFaces; f++) {
+    for (let f = 0; f < numFaces && f < triCount; f++) {
       geom.addGroup(f * 3, 3, f);
     }
     return true;
