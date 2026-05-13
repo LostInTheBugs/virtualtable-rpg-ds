@@ -57,4 +57,4 @@ async function adminMiddleware(req, res, next) {
   return res.status(403).json({ error: 'Accès refusé — admin requis' });
 }
 
-module.exports = { authMiddleware, adminMiddleware, generateToken };
+module.exports = { authMiddleware, adminMiddleware, generateToken, requireTier };
