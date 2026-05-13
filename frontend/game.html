@@ -3735,66 +3735,38 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
   const FRICTION = 0.85;
   const GROUND_ANGLE_DAMP = 0.7;
 
-  function buildPerFaceMaterials(numFaces, style) {
-    const edgeHex = '#' + (style.edge || 0xc9a227).toString(16).padStart(6, '0');
-    const bgHex = '#' + style.body.toString(16).padStart(6, '0');
-    const mats = [];
-    for (let f = 1; f <= numFaces; f++) {
-      const cv = document.createElement('canvas');
-      cv.width = cv.height = 128;
-      const cx = cv.getContext('2d');
-      // Background
-      cx.fillStyle = bgHex;
-      cx.fillRect(0, 0, 128, 128);
-      // Border
-      cx.strokeStyle = edgeHex;
-      cx.lineWidth = 3;
-      if (cx.roundRect) { cx.roundRect(8, 8, 112, 112, 10); cx.stroke(); }
-      else { cx.strokeRect(8, 8, 112, 112); }
-      // Number
-      cx.fillStyle = edgeHex;
-      cx.textAlign = 'center';
-      cx.textBaseline = 'middle';
-      cx.font = 'bold 44px Inter, sans-serif';
-      cx.fillText(String(f), 64, 64);
-      mats.push(new THREE.MeshPhongMaterial({ map: new THREE.CanvasTexture(cv), polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }));
-    }
-    return mats;
-  }
-
-  function setupGeomGroups(geom, numFaces) {
-    const idx = geom.getIndex();
-    let triCount;
-    if (idx) {
-      triCount = idx.count / 3;
-    } else {
-      // Non-indexed geometry: each consecutive 3 positions = 1 face
-      triCount = geom.attributes.position.count / 3;
-    }
-    if (triCount < numFaces) return false;
-    geom.clearGroups();
-    for (let f = 0; f < numFaces && f < triCount; f++) {
-      geom.addGroup(f * 3, 3, f);
-    }
-    return true;
-  }
-
   for (let i = 0; i < count; i++) {
     const geom = buildDiceGeometry(faces);
     let mat;
     if (faces === 6) {
       mat = buildD6Materials(style);
-    } else if (faces === 4 || faces === 8 || faces === 12 || faces === 20) {
-      const ok = setupGeomGroups(geom, faces);
-      mat = ok ? buildPerFaceMaterials(faces, style) : new THREE.MeshPhongMaterial({
-        color: style.body, emissive: style.emissive, specular: style.specular,
-        shininess: style.shininess, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
-      });
     } else {
-      mat = new THREE.MeshPhongMaterial({
-        color: style.body, emissive: style.emissive, specular: style.specular,
-        shininess: style.shininess, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
-      });
+      // Per-face colored materials pour donner du relief
+      const baseColor = style.body;
+      const mats = [];
+      for (let f = 0; f < faces; f++) {
+        const shade = 0.7 + (f / faces) * 0.6;
+        const r = ((baseColor >> 16) & 0xff) * shade;
+        const g = ((baseColor >> 8) & 0xff) * shade;
+        const b = (baseColor & 0xff) * shade;
+        const color = (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
+        mats.push(new THREE.MeshPhongMaterial({
+          color: color,
+          specular: style.specular,
+          shininess: style.shininess,
+          polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+        }));
+      }
+      // Setup per-face groups (handle both indexed and non-indexed)
+      const idx = geom.getIndex();
+      const triCount = idx ? idx.count / 3 : geom.attributes.position.count / 3;
+      if (triCount >= faces) {
+        geom.clearGroups();
+        for (let f = 0; f < faces; f++) {
+          geom.addGroup(f * 3, 3, f);
+        }
+      }
+      mat = mats;
     }
     const mesh = new THREE.Mesh(geom, mat);
     if (faces !== 6) {
