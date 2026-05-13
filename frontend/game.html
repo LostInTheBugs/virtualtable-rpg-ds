@@ -616,8 +616,8 @@ body.pf2e-campaign .dnd5e-label{font-size:0;}
 
 /* Dés 3D overlay */
 .dice3d-overlay{position:fixed;inset:0;z-index:210;pointer-events:none;display:none;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;background:radial-gradient(ellipse at center,rgba(0,0,0,.55) 0%,transparent 70%);}
-.dice3d-canvas-wrap{position:relative;width:200px;height:200px;}
-#dice3dCanvas{width:200px;height:200px;border-radius:50%;filter:drop-shadow(0 0 18px rgba(201,162,39,.5));}
+.dice3d-canvas-wrap{position:relative;width:280px;height:220px;}
+#dice3dCanvas{width:280px;height:220px;border-radius:20px;filter:drop-shadow(0 0 24px rgba(201,162,39,.4));}
 .dice3d-result{font-family:'Cinzel',serif;font-size:3.2rem;font-weight:700;color:var(--accent);text-shadow:0 0 24px rgba(201,162,39,.7);opacity:0;transition:opacity .3s .1s, transform .3s .1s;transform:scale(.5);}
 .dice3d-result.visible{opacity:1;transform:scale(1);}
 .dice3d-result.critical{color:#fbbf24;text-shadow:0 0 30px #fbbf24,0 0 60px #f59e0b;}
@@ -1287,7 +1287,7 @@ body.table-mode .zone-subtoolbar{display:none !important;}
 <!-- Dé 3D overlay -->
 <div class="dice3d-overlay" id="dice3dOverlay">
   <div class="dice3d-canvas-wrap">
-    <canvas id="dice3dCanvas" width="400" height="400"></canvas>
+      <canvas id="dice3dCanvas" width="560" height="440"></canvas>
   </div>
   <div class="dice3d-result" id="dice3dResult">—</div>
   <div class="dice3d-label" id="dice3dLabel"></div>
@@ -3587,7 +3587,7 @@ function rollDie(dice) {
 
 // ── Dés 3D (Three.js r128) ────────────────────────────────────
 let dice3DEnabled = false;
-let dice3DScene, dice3DCamera, dice3DRenderer, dice3DMesh, dice3DAnimId;
+let dice3DScene, dice3DCamera, dice3DRenderer, dice3DMeshes = [], dice3DAnimId;
 
 function buildDiceStylePicker() {
   const el = document.getElementById('diceStylePicker');
@@ -3631,22 +3631,49 @@ function initDice3D() {
   if (!cv || dice3DRenderer) return;
 
   dice3DScene = new THREE.Scene();
-  dice3DCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-  dice3DCamera.position.set(0, 0, 5);
+  dice3DCamera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  dice3DCamera.position.set(0, 2.5, 4.5);
+  dice3DCamera.lookAt(0, 0, 0);
 
   dice3DRenderer = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true });
-  dice3DRenderer.setSize(200, 200);
+  dice3DRenderer.setSize(280, 220);
   dice3DRenderer.setClearColor(0x000000, 0);
   dice3DRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  dice3DRenderer.shadowMap.enabled = false; // keep it fast
 
-  const ambLight = new THREE.AmbientLight(0xffffff, 0.5);
+  // Table surface (ground plane)
+  const tableGeom = new THREE.PlaneGeometry(6, 4);
+  const tableMat = new THREE.MeshPhongMaterial({
+    color: 0x1a1a2a,
+    specular: 0x222244,
+    shininess: 20,
+    side: THREE.DoubleSide,
+  });
+  const table = new THREE.Mesh(tableGeom, tableMat);
+  table.rotation.x = -Math.PI / 2;
+  table.position.y = -1.2;
+  dice3DScene.add(table);
+
+  // Table edge glow
+  const edgeGeom = new THREE.EdgesGeometry(tableGeom);
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0x333355, transparent: true, opacity: 0.4 });
+  const edgeLine = new THREE.LineSegments(edgeGeom, edgeMat);
+  edgeLine.rotation.x = -Math.PI / 2;
+  edgeLine.position.y = -1.19;
+  dice3DScene.add(edgeLine);
+
+  // Lighting
+  const ambLight = new THREE.AmbientLight(0x8888aa, 0.6);
   dice3DScene.add(ambLight);
-  const dirLight = new THREE.DirectionalLight(0xc9a227, 1.4);
-  dirLight.position.set(3, 5, 5);
+  const dirLight = new THREE.DirectionalLight(0xffeedd, 1.6);
+  dirLight.position.set(2, 6, 4);
   dice3DScene.add(dirLight);
-  const backLight = new THREE.DirectionalLight(0x8b5cf6, 0.5);
-  backLight.position.set(-3, -2, -3);
-  dice3DScene.add(backLight);
+  const fillLight = new THREE.DirectionalLight(0x8b5cf6, 0.4);
+  fillLight.position.set(-3, 1, -2);
+  dice3DScene.add(fillLight);
+  const rimLight = new THREE.DirectionalLight(0xc9a227, 0.3);
+  rimLight.position.set(-1, 3, -4);
+  dice3DScene.add(rimLight);
 }
 
 function buildD6Materials(style) {
@@ -3681,14 +3708,15 @@ function buildD6Materials(style) {
 }
 
 function buildDiceGeometry(faces) {
+  // Slightly smaller so multiple dice fit on the table
   switch (faces) {
-    case 4:   return new THREE.TetrahedronGeometry(1.5);
-    case 6:   return new THREE.BoxGeometry(1.6, 1.6, 1.6);
-    case 8:   return new THREE.OctahedronGeometry(1.5);
-    case 10:  return new THREE.ConeGeometry(1.3, 2.2, 5);
-    case 12:  return new THREE.DodecahedronGeometry(1.4);
-    case 20:  return new THREE.IcosahedronGeometry(1.5);
-    default:  return new THREE.IcosahedronGeometry(1.5);
+    case 4:   return new THREE.TetrahedronGeometry(0.9);
+    case 6:   return new THREE.BoxGeometry(1.0, 1.0, 1.0);
+    case 8:   return new THREE.OctahedronGeometry(0.9);
+    case 10:  return new THREE.ConeGeometry(0.8, 1.3, 5);
+    case 12:  return new THREE.DodecahedronGeometry(0.9);
+    case 20:  return new THREE.IcosahedronGeometry(0.95);
+    default:  return new THREE.IcosahedronGeometry(0.95);
   }
 }
 
@@ -3697,116 +3725,156 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
   if (!dice3DRenderer) initDice3D();
   if (!dice3DRenderer) return;
 
-  const faces = parseInt(dice.replace(/^\d*d/i, ''), 10) || 20;
+  // Parse: "2d6" -> count=2, faces=6
+  const match = dice.match(/^(\d*)d(\d+)/i);
+  const count = match ? (parseInt(match[1]) || 1) : 1;
+  const faces = match ? parseInt(match[2]) : 20;
   const overlay = document.getElementById('dice3dOverlay');
   if (!overlay) return;
 
-  // Remove old mesh
-  if (dice3DMesh) { dice3DScene.remove(dice3DMesh); dice3DMesh = null; }
+  // Remove old dice
+  dice3DMeshes.forEach(m => { dice3DScene.remove(m.mesh); });
+  dice3DMeshes = [];
 
-  // Reset camera position for different dice sizes
-  dice3DCamera.position.set(0, 0, faces > 12 ? 5 : 4.5);
-
-  const geom = buildDiceGeometry(faces);
   const style = getDiceStyle();
-  let mat;
-  if (faces === 6) {
-    mat = buildD6Materials(style);
-  } else {
-    mat = new THREE.MeshPhongMaterial({
-      color: style.body,
-      emissive: style.emissive,
-      specular: style.specular,
-      shininess: style.shininess,
-      polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+  const groundY = -1.2;
+  const GRAVITY = -12;
+  const RESTITUTION = 0.45;
+  const FRICTION = 0.85;
+  const GROUND_ANGLE_DAMP = 0.7;
+
+  // Create dice bodies
+  for (let i = 0; i < count; i++) {
+    const geom = buildDiceGeometry(faces);
+    let mat;
+    if (faces === 6) {
+      mat = buildD6Materials(style);
+    } else {
+      mat = new THREE.MeshPhongMaterial({
+        color: style.body,
+        emissive: style.emissive,
+        specular: style.specular,
+        shininess: style.shininess,
+        polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+      });
+    }
+    const mesh = new THREE.Mesh(geom, mat);
+    if (faces !== 6) {
+      const edges = new THREE.EdgesGeometry(geom);
+      const lineMat = new THREE.LineBasicMaterial({ color: style.edge || 0xc9a227 });
+      mesh.add(new THREE.LineSegments(edges, lineMat));
+    }
+    // Spread dice in a fan
+    const spread = (i - (count - 1) / 2) * 0.6;
+    mesh.position.set(spread, 2.0 + Math.random() * 1.0, (Math.random() - 0.5) * 0.8);
+    // Random initial rotation
+    mesh.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2);
+    dice3DScene.add(mesh);
+
+    // Physics state
+    dice3DMeshes.push({
+      mesh,
+      vx: spread * 0.15 + (Math.random() - 0.5) * 0.2,
+      vy: 2.5 + Math.random() * 2.0,
+      vz: (Math.random() - 0.5) * 0.3,
+      angVx: (Math.random() - 0.5) * 12,
+      angVy: (Math.random() - 0.5) * 12,
+      angVz: (Math.random() - 0.5) * 12,
     });
   }
 
-  dice3DMesh = new THREE.Mesh(geom, mat);
-
-  if (faces !== 6) {
-    const edges = new THREE.EdgesGeometry(geom);
-    const lineMat = new THREE.LineBasicMaterial({ color: style.edge || 0xc9a227 });
-    dice3DMesh.add(new THREE.LineSegments(edges, lineMat));
-  }
-  dice3DScene.add(dice3DMesh);
-
-  // Reset result display
+  // Result display
   const resultEl = document.getElementById('dice3dResult');
   const labelEl  = document.getElementById('dice3dLabel');
   if (resultEl) { resultEl.textContent = ''; resultEl.className = 'dice3d-result'; }
   if (labelEl)  { labelEl.textContent = ''; labelEl.className = 'dice3d-label'; }
-
   overlay.style.display = 'flex';
-
-  // Lancer le dé depuis le haut
-  dice3DMesh.position.y = 0.8;
-  const spinAxis = new THREE.Vector3(
-    Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
-  ).normalize();
-  const totalAngle = (10 + Math.random() * 8) * Math.PI * 2; // 10-18 rotations
-  const spinDuration = 1400;
-  const startTime = performance.now();
 
   if (dice3DAnimId) cancelAnimationFrame(dice3DAnimId);
 
-  function frame(now) {
-    const t = Math.min((now - startTime) / spinDuration, 1);
-    const ease = 1 - Math.pow(1 - t, 3); // cubic ease-out
-    // Rotation
-    dice3DMesh.setRotationFromAxisAngle(spinAxis, ease * totalAngle);
-    // Chute + rebond
-    if (t < 0.85) {
-      dice3DMesh.position.y = 0.8 * Math.cos(t / 0.85 * Math.PI * 0.5); // chute libre
-    } else {
-      const bounce = (t - 0.85) / 0.15;
-      dice3DMesh.position.y = 0.3 * Math.sin(bounce * Math.PI) * (1 - bounce); // micro-rebond
+  let settled = false;
+  let settleTimer = 0;
+  const settleTimeout = 3.5;
+  let lastTime = performance.now();
+
+  function physicsFrame(now) {
+    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    lastTime = now;
+
+    let allSettled = true;
+    for (const d of dice3DMeshes) {
+      // Gravity
+      d.vy += GRAVITY * dt;
+      // Apply velocity
+      d.mesh.position.x += d.vx * dt;
+      d.mesh.position.y += d.vy * dt;
+      d.mesh.position.z += d.vz * dt;
+      // Angular velocity
+      d.mesh.rotation.x += d.angVx * dt;
+      d.mesh.rotation.y += d.angVy * dt;
+      d.mesh.rotation.z += d.angVz * dt;
+
+      // Ground collision
+      if (d.mesh.position.y <= groundY) {
+        d.mesh.position.y = groundY;
+        d.vy = -d.vy * RESTITUTION;
+        d.vx *= FRICTION;
+        d.vz *= FRICTION;
+        d.angVx *= GROUND_ANGLE_DAMP;
+        d.angVy *= GROUND_ANGLE_DAMP;
+        d.angVz *= GROUND_ANGLE_DAMP;
+        if (Math.abs(d.vy) < 0.1) d.vy = 0;
+      }
+      // Check if settled
+      const speed = Math.abs(d.vx) + Math.abs(d.vy) + Math.abs(d.vz) +
+                    Math.abs(d.angVx) + Math.abs(d.angVy) + Math.abs(d.angVz);
+      if (speed > 0.05) allSettled = false;
     }
-    // Légère oscillation de la caméra
-    dice3DCamera.position.x = Math.sin(t * Math.PI * 2) * 0.08;
-    dice3DCamera.position.y = Math.abs(Math.cos(t * Math.PI * 3)) * 0.06;
+
+    // Slow zoom oscillation
+    dice3DCamera.position.x = Math.sin(now * 0.001) * 0.1;
+    dice3DCamera.position.y = 2.5 + Math.abs(Math.sin(now * 0.0008)) * 0.05;
+    dice3DCamera.lookAt(0, 0, 0);
     dice3DRenderer.render(dice3DScene, dice3DCamera);
 
-    if (t < 1) {
-      dice3DAnimId = requestAnimationFrame(frame);
-    } else {
-      // Reveal result
-      if (resultEl) {
-        resultEl.textContent = total;
-        let cls = 'dice3d-result visible';
-        if (faces === 20 && rolls && rolls[0] === 20) cls += ' critical';
-        else if (faces === 20 && rolls && rolls[0] === 1) cls += ' fumble';
-        resultEl.className = cls;
-      }
-      if (labelEl) {
-        const displayLabel = label || dice;
-        labelEl.textContent = `${character_name} — ${displayLabel}`;
-        labelEl.className = 'dice3d-label visible';
-      }
-      // Continue rendering (hover en douceur)
-      let bounceStart = performance.now();
-      function idleBounce(now2) {
-        const bt = (now2 - bounceStart) / 1000;
-        if (dice3DMesh) {
-          dice3DMesh.rotation.y += 0.004;
-          dice3DMesh.position.y = Math.sin(bt * 0.8) * 0.03;
-          dice3DRenderer.render(dice3DScene, dice3DCamera);
+    if (!settled) {
+      if (allSettled) {
+        settled = true;
+        settleTimer = now;
+        // Reveal result
+        if (resultEl) {
+          resultEl.textContent = total;
+          let cls = 'dice3d-result visible';
+          if (faces === 20 && rolls && rolls[0] === 20) cls += ' critical';
+          else if (faces === 20 && rolls && rolls[0] === 1) cls += ' fumble';
+          resultEl.className = cls;
         }
-        dice3DAnimId = requestAnimationFrame(idleBounce);
+        if (labelEl) {
+          labelEl.textContent = `${character_name} — ${(label || dice)}`;
+          labelEl.className = 'dice3d-label visible';
+        }
       }
-      dice3DAnimId = requestAnimationFrame(idleBounce);
-
-      // Auto-hide after 2.8s
-      setTimeout(() => {
-        cancelAnimationFrame(dice3DAnimId);
+      dice3DAnimId = requestAnimationFrame(physicsFrame);
+    } else {
+      // Show settled dice for a moment, then auto-hide
+      if (now - settleTimer > 2200) {
         overlay.style.display = 'none';
         if (resultEl) resultEl.className = 'dice3d-result';
         if (labelEl)  labelEl.className = 'dice3d-label';
-        if (dice3DMesh) { dice3DScene.remove(dice3DMesh); dice3DMesh = null; }
-      }, 2800);
+        dice3DMeshes.forEach(d => { dice3DScene.remove(d.mesh); });
+        dice3DMeshes = [];
+        return;
+      }
+      // Gentle idle rotation
+      for (const d of dice3DMeshes) {
+        d.mesh.rotation.y += 0.003;
+        d.mesh.position.y = groundY + Math.sin(now * 0.001 + d.mesh.position.x) * 0.02;
+      }
+      dice3DAnimId = requestAnimationFrame(physicsFrame);
     }
   }
-  dice3DAnimId = requestAnimationFrame(frame);
+
+  dice3DAnimId = requestAnimationFrame(physicsFrame);
 }
 
 // ── Dé 2D animé ───────────────────────────────────────────────
