@@ -194,7 +194,9 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 .upload-field input[type=url],.upload-field input[type=text]{flex:1;}
 .upload-file-btn{display:inline-flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:7px;padding:.45rem .65rem;cursor:pointer;font-size:.9rem;transition:.15s;flex-shrink:0;line-height:1;}
 .upload-file-btn:hover{border-color:var(--accent2);color:var(--accent2);}
-.sys-desc{font-size:.73rem;color:var(--text2);padding:.35rem .6rem;margin-top:.25rem;background:var(--surface2);border-radius:6px;border:1px solid var(--border);min-height:1.8rem;transition:.2s;}
+.sys-desc{display:flex;align-items:flex-start;gap:.5rem;font-size:.73rem;color:var(--text2);padding:.35rem .6rem;margin-top:.25rem;background:var(--surface2);border-radius:6px;border:1px solid var(--border);min-height:1.8rem;transition:.2s;}
+.sys-desc .sys-logo{font-size:1.4rem;line-height:1.3;flex-shrink:0;}
+.sys-desc .sys-text{flex:1;}
 .upload-file-btn.loading{opacity:.5;cursor:default;}
 </style>
 </head>
@@ -1081,7 +1083,11 @@ function showSystemDesc() {
   const descEl = document.getElementById('sysDesc');
   if (!sel || !descEl) return;
   const sys = getSystem(sel.value);
-  descEl.innerHTML = sys && sys.desc ? `<strong>${sys.label}</strong> — ${sys.desc}` : 'Sélectionnez un système pour voir sa description.';
+  if (sys && sys.desc) {
+    descEl.innerHTML = `<span class="sys-logo">${sys.logo || '🎲'}</span><span class="sys-text"><strong>${sys.label}</strong> — ${sys.desc}</span>`;
+  } else {
+    descEl.innerHTML = '<span class="sys-text">Sélectionnez un système pour voir sa description.</span>';
+  }
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }

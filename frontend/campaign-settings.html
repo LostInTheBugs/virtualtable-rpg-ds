@@ -340,7 +340,11 @@ function showSystemDescSettings() {
   const descEl = document.getElementById('sysDescSettings');
   if (!inp || !descEl) return;
   const sys = getSystem(inp.value);
-  descEl.innerHTML = sys && sys.desc ? `<strong>${sys.label}</strong> — ${sys.desc}` : '';
+  if (sys && sys.desc) {
+    descEl.innerHTML = `<span style="font-size:1.2rem;margin-right:.4rem;">${sys.logo || '🎲'}</span><span><strong>${sys.label}</strong> — ${sys.desc}</span>`;
+  } else {
+    descEl.innerHTML = '';
+  }
 }
 
 async function saveSettings() {

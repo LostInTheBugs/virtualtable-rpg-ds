@@ -10,6 +10,7 @@ const RPG_SYSTEMS = {
   "D&D 5e": {
     label: "D&D 5e",
     desc: "Le plus célèbre des jeux de rôle fantasy. Personnalisation poussée via classes, sous-classes, sorts et dons. Système de combat tactique au tour par tour.",
+    logo: "🐉",
     stats: [
       { key: 'str', label: 'FOR',  default: 10 },
       { key: 'dex', label: 'DEX',  default: 10 },
@@ -48,6 +49,7 @@ const RPG_SYSTEMS = {
   "Pathfinder 2e": {
     label: "Pathfinder 2e",
     desc: "Successeur spirituel de D&D 3.5. Système très tactique avec trois actions par tour, classes et archétypes variés.",
+    logo: "⚔️",
     stats: [
       { key: 'str', label: 'FOR',  default: 10 },
       { key: 'dex', label: 'DEX',  default: 10 },
@@ -84,6 +86,7 @@ const RPG_SYSTEMS = {
   "Warhammer Fantasy": {
     label: "Warhammer Fantasy",
     desc: "Univers sombre et brutal du Vieux Monde. Carrières évolutives, combat mortel, magie dangereuse. Système de pourcentages (d100).",
+    logo: "🗡️",
     stats: [
       { key: 'ws',  label: 'CC',  default: 30 },
       { key: 'bs',  label: 'CT',  default: 30 },
@@ -127,6 +130,7 @@ const RPG_SYSTEMS = {
   "Call of Cthulhu": {
     label: "Call of Cthulhu",
     desc: "Enquête horrifique dans l'univers de H.P. Lovecraft. Système de pourcentages (d100), santé mentale (SAN), mythe de Cthulhu. Très orienté enquête et rôle.",
+    logo: "🐙",
     stats: [
       { key: 'str', label: 'FOR', default: 50 },
       { key: 'con', label: 'CON', default: 50 },
@@ -173,6 +177,7 @@ const RPG_SYSTEMS = {
   "Starfinder": {
     label: "Starfinder",
     desc: "D&D 5e dans l'espace. Créatures aliens, vaisseaux spatiaux, technologie avancée et magie (mysticisme). Système de stamina et résolution.",
+    logo: "🚀",
     stats: [
       { key: 'str', label: 'FOR',  default: 10 },
       { key: 'dex', label: 'DEX',  default: 10 },
@@ -204,6 +209,7 @@ const RPG_SYSTEMS = {
   "Shadowrun": {
     label: "Shadowrun",
     desc: "Cyberpunk-fantasy. Hackers, mages, samouraïs et elfes dans un futur dystopique. Système de pool de dés (d6), essence et magie matricielle.",
+    logo: "🤖",
     stats: [
       { key: 'bod', label: 'BOD', default: 3 },
       { key: 'agi', label: 'AGI', default: 3 },
@@ -240,6 +246,7 @@ const RPG_SYSTEMS = {
   "Vampire: The Masquerade": {
     label: "Vampire: The Masquerade",
     desc: "Jeu de rôle narratif dans le Monde des Ténèbres. Incarnez un vampire, gérez votre humanité, vos disciplines et votre sang. Système de pool de d10.",
+    logo: "🦇",
     stats: [
       { key: 'str', label: 'FOR', default: 1 },
       { key: 'dex', label: 'DEX', default: 1 },
@@ -276,6 +283,7 @@ const RPG_SYSTEMS = {
   "Cyberpunk Red": {
     label: "Cyberpunk Red",
     desc: "Dark future city. Cyber-implantations, armes à feu, netrunning et rockers. Système d10 avec explosion de dés, armure SP.",
+    logo: "💻",
     stats: [
       { key: 'int', label: 'INT', default: 5 },
       { key: 'ref', label: 'REF', default: 5 },
@@ -316,6 +324,7 @@ const RPG_SYSTEMS = {
   "Savage Worlds": {
     label: "Savage Worlds",
     desc: "Système générique rapide et nerveux (Fast! Furious! Fun!). Dés dégressifs par compétence, cartes pour l'initiative, bénéfices et handicaps.",
+    logo: "🎲",
     stats: [
       { key: 'agi', label: 'AGI', default: 4 },
       { key: 'sma', label: 'INT', default: 4 },
@@ -347,6 +356,7 @@ const RPG_SYSTEMS = {
   "Cats! La Mascarade": {
     label: "Cats! La Mascarade",
     desc: "Jeu de rôle français où les PJ sont des chats vivant dans l'Ombre. Agilité, charme félin, griffes et mystères. Système narratif léger.",
+    logo: "🐱",
     stats: [
       { key: 'agi', label: 'AGI', default: 3 },
       { key: 'per', label: 'PER', default: 3 },
@@ -373,6 +383,7 @@ const RPG_SYSTEMS = {
   "Dune": {
     label: "Dune",
     desc: "Univers de Frank Herbert. Politique, intrigues et combat dans l'Imperium. Système 2d20 avec momentum, avantages et compétences de Maison.",
+    logo: "🏜️",
     stats: [
       { key: 'str', label: 'FOR', default: 8 },
       { key: 'agi', label: 'AGI', default: 8 },
@@ -403,6 +414,7 @@ const RPG_SYSTEMS = {
   "Star Wars": {
     label: "Star Wars",
     desc: "Galaxie lointaine, très lointaine. Système aux dés narratifs (Boost/Setback/Advantage/Threat). Trois sagas : Rebelles, Contrebandiers ou Jedi.",
+    logo: "⭐",
     stats: [
       { key: 'brw', label: 'BRU', default: 2 },
       { key: 'agi', label: 'AGI', default: 2 },
@@ -438,6 +450,7 @@ const RPG_SYSTEMS = {
   "Le Seigneur des Anneaux": {
     label: "Le Seigneur des Anneaux",
     desc: "Terre du Milieu. Compagnie de Héros, ombre du Mordor, conseils et voyages. Système de dés de succès avec Courage et Ombre.",
+    logo: "💍",
     stats: [
       { key: 'str', label: 'COR', default: 3 },
       { key: 'agi', label: 'AGA', default: 3 },
@@ -468,6 +481,7 @@ const RPG_SYSTEMS = {
   "Paranoia": {
     label: "Paranoia",
     desc: "Humour dystopique dans un complexe souterrain dirigé par l'Amical Ordinateur. Trahison, clones, mutants et société secrètes. Système d100.",
+    logo: "☢️",
     stats: [
       { key: 'vio', label: 'VIOL', default: 5 },
       { key: 'cha', label: 'CHAR', default: 5 },
@@ -495,6 +509,7 @@ const RPG_SYSTEMS = {
   "Tomorrow City": {
     label: "Tomorrow City",
     desc: "Jeu de rôle français cyber-noir. Megacorporations, implants cybernétiques et pluie acide. Système narratif avec dés de conflit.",
+    logo: "🌆",
     stats: [
       { key: 'phy', label: 'PHY', default: 5 },
       { key: 'men', label: 'MEN', default: 5 },
@@ -524,6 +539,7 @@ const RPG_SYSTEMS = {
   "Autre": {
     label: "Autre",
     desc: "Système de jeu non listé. Utilisez pour tout jeu ne figurant pas dans cette liste (Chroniques Oubliées, Légendes, etc.).",
+    logo: "❓",
     stats: [
       { key: 'stat1', label: 'Stat 1', default: 10 },
       { key: 'stat2', label: 'Stat 2', default: 10 },
