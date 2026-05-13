@@ -975,9 +975,7 @@ body.table-mode .zone-subtoolbar{display:none !important;}
       <div style="text-align:center;margin-top:.4rem;">
         <button class="btn-3d-toggle" id="btn3dToggle" onclick="toggle3DDice()">🎲 Dés 3D : OFF</button>
         <div id="diceStylePicker" style="display:none;margin-top:.3rem;flex-wrap:wrap;gap:.3rem;justify-content:center;align-items:center;">
-          <span style="font-size:.65rem;color:var(--text2);margin-right:.15rem;">Style :</span>
-
-          ${(() => { const currentStyle = localStorage.getItem('rpg_dice_style')||'classic'; const cur = DICE_STYLES.find(s=>s.id===currentStyle); return `<span class="dice-style-name" style="font-size:.65rem;color:var(--text);margin-right:.2rem;">${cur?cur.name:'Classique'}</span>` + DICE_STYLES.map(s => `<button class="dice-style-btn" data-style="${s.id}" onclick="selectDiceStyle('${s.id}')" title="${s.name} — ${s.desc}" style="background:#${s.body.toString(16).padStart(6,'0')}" data-active="${s.id === currentStyle ? '1' : '0'}"></button>`).join(''); })()}
+          <!-- Rempli dynamiquement par buildDiceStylePicker() -->
         </div>
       </div>
     </div>
@@ -3591,6 +3589,21 @@ function rollDie(dice) {
 let dice3DEnabled = false;
 let dice3DScene, dice3DCamera, dice3DRenderer, dice3DMesh, dice3DAnimId;
 
+function buildDiceStylePicker() {
+  const el = document.getElementById('diceStylePicker');
+  if (!el) return;
+  const currentStyle = localStorage.getItem('rpg_dice_style') || 'classic';
+  const cur = DICE_STYLES.find(s => s.id === currentStyle);
+  let html = '<span style="font-size:.65rem;color:var(--text2);margin-right:.15rem;">Style :</span>';
+  html += `<span style="font-size:.65rem;color:var(--text);margin-right:.2rem;">${cur ? cur.name : 'Classique'}</span>`;
+  DICE_STYLES.forEach(s => {
+    const hex = '#' + s.body.toString(16).padStart(6, '0');
+    const active = s.id === currentStyle ? '1' : '0';
+    html += `<button class="dice-style-btn" data-style="${s.id}" onclick="selectDiceStyle('${s.id}')" title="${s.name} — ${s.desc}" style="background:${hex}" data-active="${active}"></button>`;
+  });
+  el.innerHTML = html;
+}
+
 function toggle3DDice() {
   dice3DEnabled = !dice3DEnabled;
   const btn = document.getElementById('btn3dToggle');
@@ -3598,6 +3611,7 @@ function toggle3DDice() {
     btn.textContent = `🎲 Dés 3D : ${dice3DEnabled ? 'ON' : 'OFF'}`;
     btn.classList.toggle('on', dice3DEnabled);
   }
+  if (dice3DEnabled) buildDiceStylePicker();
   const picker = document.getElementById('diceStylePicker');
   if (picker) picker.style.display = dice3DEnabled ? 'flex' : 'none';
   if (dice3DEnabled && !dice3DRenderer) initDice3D();
