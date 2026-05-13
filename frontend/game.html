@@ -3735,42 +3735,43 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
   const FRICTION = 0.85;
   const GROUND_ANGLE_DAMP = 0.7;
 
-  // Helper: ajoute des sprites numérotés sur chaque face d'un dé
-  function addFaceNumbers(mesh, numFaces) {
-    const geom = mesh.geometry;
-    const pos = geom.attributes.position;
-    const idx = geom.getIndex();
-    const triCount = Math.floor((idx ? idx.count : pos.count) / 3);
-    const edgeColor = style.edge || 0xc9a227;
-    const edgeHex = '#' + edgeColor.toString(16).padStart(6, '0');
-    const center = new THREE.Vector3();
-    const v = new THREE.Vector3();
-    for (let f = 0; f < Math.min(triCount, numFaces); f++) {
-      const i1 = idx ? idx.getX(f * 3) : f * 3;
-      const i2 = idx ? idx.getX(f * 3 + 1) : f * 3 + 1;
-      const i3 = idx ? idx.getX(f * 3 + 2) : f * 3 + 2;
-      center.set(0, 0, 0);
-      v.fromBufferAttribute(pos, i1); center.add(v);
-      v.fromBufferAttribute(pos, i2); center.add(v);
-      v.fromBufferAttribute(pos, i3); center.add(v);
-      center.divideScalar(3);
-      // Canvas for this face
+  function buildPerFaceMaterials(numFaces, style) {
+    const edgeHex = '#' + (style.edge || 0xc9a227).toString(16).padStart(6, '0');
+    const bgHex = '#' + style.body.toString(16).padStart(6, '0');
+    const mats = [];
+    for (let f = 1; f <= numFaces; f++) {
       const cv = document.createElement('canvas');
-      cv.width = cv.height = 64;
+      cv.width = cv.height = 128;
       const cx = cv.getContext('2d');
-      cx.clearRect(0, 0, 64, 64);
+      // Background
+      cx.fillStyle = bgHex;
+      cx.fillRect(0, 0, 128, 128);
+      // Border
+      cx.strokeStyle = edgeHex;
+      cx.lineWidth = 3;
+      if (cx.roundRect) { cx.roundRect(8, 8, 112, 112, 10); cx.stroke(); }
+      else { cx.strokeRect(8, 8, 112, 112); }
+      // Number
       cx.fillStyle = edgeHex;
       cx.textAlign = 'center';
       cx.textBaseline = 'middle';
-      cx.font = 'bold 28px Inter, sans-serif';
-      cx.fillText(String(f + 1), 32, 32);
-      const tex = new THREE.CanvasTexture(cv);
-      const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
-      const sprite = new THREE.Sprite(spriteMat);
-      sprite.position.copy(center);
-      sprite.scale.set(0.55, 0.55, 1);
-      mesh.add(sprite);
+      cx.font = 'bold 44px Inter, sans-serif';
+      cx.fillText(String(f), 64, 64);
+      mats.push(new THREE.MeshPhongMaterial({ map: new THREE.CanvasTexture(cv), polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }));
     }
+    return mats;
+  }
+
+  function setupGeomGroups(geom, numFaces) {
+    const idx = geom.getIndex();
+    if (!idx) return false;
+    const triCount = idx.count / 3;
+    if (triCount < numFaces) return false;
+    geom.clearGroups();
+    for (let f = 0; f < numFaces; f++) {
+      geom.addGroup(f * 3, 3, f);
+    }
+    return true;
   }
 
   for (let i = 0; i < count; i++) {
@@ -3778,13 +3779,16 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
     let mat;
     if (faces === 6) {
       mat = buildD6Materials(style);
+    } else if (faces === 4 || faces === 8 || faces === 12 || faces === 20) {
+      const ok = setupGeomGroups(geom, faces);
+      mat = ok ? buildPerFaceMaterials(faces, style) : new THREE.MeshPhongMaterial({
+        color: style.body, emissive: style.emissive, specular: style.specular,
+        shininess: style.shininess, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+      });
     } else {
       mat = new THREE.MeshPhongMaterial({
-        color: style.body,
-        emissive: style.emissive,
-        specular: style.specular,
-        shininess: style.shininess,
-        polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+        color: style.body, emissive: style.emissive, specular: style.specular,
+        shininess: style.shininess, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
       });
     }
     const mesh = new THREE.Mesh(geom, mat);
@@ -3792,8 +3796,6 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
       const edges = new THREE.EdgesGeometry(geom);
       const lineMat = new THREE.LineBasicMaterial({ color: style.edge || 0xc9a227 });
       mesh.add(new THREE.LineSegments(edges, lineMat));
-      // Add numbered sprites on each face
-      addFaceNumbers(mesh, faces);
     }
     // Spread dice in a fan
     const spread = (i - (count - 1) / 2) * 0.6;
