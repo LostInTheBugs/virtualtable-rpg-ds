@@ -9529,30 +9529,52 @@ async function uploadImageGame(fileInput, urlFieldId, onDone) {
 }
 
 // ── Cartes prédéfinies ────────────────────────────────────────
+// Tags système pour les cartes prédéfinies
+// Permet de trier les cartes par pertinence selon le système de campagne
+const MAP_SYSTEM_TAGS = {
+  fantasy:  ['D&D 5e','Pathfinder 2e','Warhammer Fantasy','Le Seigneur des Anneaux','Savage Worlds'],
+  desert:   ['Dune','Savage Worlds'],
+  urban:    ['Cyberpunk Red','Shadowrun','Vampire: The Masquerade','Tomorrow City','Call of Cthulhu'],
+  forest:   ['D&D 5e','Pathfinder 2e','Le Seigneur des Anneaux','Savage Worlds','Warhammer Fantasy'],
+  dungeon:  ['D&D 5e','Pathfinder 2e','Warhammer Fantasy','Le Seigneur des Anneaux','Paranoia'],
+  space:    ['Starfinder','Star Wars','Cyberpunk Red'],
+  horror:   ['Call of Cthulhu','Vampire: The Masquerade','Paranoia','Warhammer Fantasy'],
+  tavern:   ['D&D 5e','Pathfinder 2e','Warhammer Fantasy','Savage Worlds','Cyberpunk Red'],
+};
+
 const PRESET_MAPS = [
-  { file: 'map_donjon.jpg',   label: '🏰 Donjon' },
-  { file: 'map_taverne.jpg',  label: '🍺 Taverne' },
-  { file: 'map_foret.jpg',    label: '🌲 Forêt' },
-  { file: 'map_desert.jpg',   label: '🏜️ Désert' },
-  { file: 'map_grotte.jpg',   label: '⛏️ Grotte' },
-  { file: 'map_village.jpg',  label: '🏘️ Village' },
-  { file: 'map_port.jpg',     label: '⚓ Port' },
-  { file: 'map_montagne.jpg', label: '🏔️ Montagne' },
-  { file: 'map_crypte.jpg',   label: '💀 Crypte' },
-  { file: 'map_plaine.jpg',   label: '🌾 Plaine' },
+  { file: 'map_donjon.jpg',   label: '🏰 Donjon',    tags: ['dungeon','fantasy'] },
+  { file: 'map_taverne.jpg',  label: '🍺 Taverne',   tags: ['tavern','fantasy','urban'] },
+  { file: 'map_foret.jpg',    label: '🌲 Forêt',    tags: ['forest','fantasy'] },
+  { file: 'map_desert.jpg',   label: '🏜️ Désert',  tags: ['desert'] },
+  { file: 'map_grotte.jpg',   label: '⛏️ Grotte',  tags: ['dungeon','fantasy'] },
+  { file: 'map_village.jpg',  label: '🏘️ Village', tags: ['fantasy','urban'] },
+  { file: 'map_port.jpg',     label: '⚓ Port',     tags: ['urban','fantasy'] },
+  { file: 'map_montagne.jpg', label: '🏔️ Montagne',tags: ['fantasy','desert'] },
+  { file: 'map_crypte.jpg',   label: '💀 Crypte',  tags: ['dungeon','horror','fantasy'] },
+  { file: 'map_plaine.jpg',   label: '🌾 Plaine',  tags: ['fantasy','desert'] },
 ];
 
 function buildPresetGrid() {
   const grid = document.getElementById('preset-maps-grid');
-  if (!grid || grid.dataset.built) return;
-  grid.dataset.built = '1';
-  PRESET_MAPS.forEach(p => {
+  if (!grid) return;
+  grid.innerHTML = '';
+  // Trier les cartes par pertinence selon le système de campagne
+  const sys = currentSystemName();
+  const sorted = [...PRESET_MAPS].sort((a, b) => {
+    const aScore = a.tags?.some(t => (MAP_SYSTEM_TAGS[t] || []).includes(sys)) ? 1 : 0;
+    const bScore = b.tags?.some(t => (MAP_SYSTEM_TAGS[t] || []).includes(sys)) ? 1 : 0;
+    return bScore - aScore;
+  });
+  sorted.forEach(p => {
     const url = `/uploads/${p.file}`;
     const div = document.createElement('div');
     div.className = 'preset-map';
     div.title = p.label;
     div.dataset.url = url;
-    div.innerHTML = `<img src="${url}" alt="${p.label}" loading="lazy"/><div class="preset-map-label">${p.label}</div>`;
+    const relevant = p.tags?.some(t => (MAP_SYSTEM_TAGS[t] || []).includes(sys));
+    div.style.opacity = relevant ? '1' : '.45';
+    div.innerHTML = `<img src="${url}" alt="${p.label}" loading="lazy"/><div class="preset-map-label">${p.label}${relevant ? '' : ' · autre thème'}</div>`;
     div.onclick = () => selectPreset(div, url);
     grid.appendChild(div);
   });
