@@ -147,6 +147,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:.
         <li><strong>Bibliothèque D&D 5e</strong> — créatures du Manuel des Monstres</li>
         <li><strong>Créateur de token</strong> — recadrage, bordure, effet lumineux</li>
         <li><strong>Pathfinding</strong> — déplacement assisté sur la carte</li>
+        <li><strong>Ciblage tactique</strong> — ciblez un token, le MJ voit toutes les cibles, révélées aux joueurs au lancer de dés si la cible est isolée</li>
       </ul>
     </div>
 
@@ -178,10 +179,11 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:.
       <span class="feat-icon">📋</span>
       <div class="feat-title">Campagnes</div>
       <ul class="feat-list">
-        <li><strong>Création</strong> — campagnes multiples par compte</li>
+        <li><strong>Création</strong> — campagnes multiples par compte (selon niveau)</li>
         <li><strong>Invitation</strong> — code unique partageable</li>
         <li><strong>Configuration</strong> — système de jeu, visibilité des PV, descriptif et logo du système</li>
         <li><strong>Ownership</strong> — personnages liés à leur joueur</li>
+        <li><strong>Suppression</strong> — le MJ peut supprimer définitivement une campagne</li>
         <li><strong>Raccourcis clavier</strong> — navigation rapide en partie</li>
       </ul>
     </div>
@@ -199,14 +201,26 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:.
     </div>
 
     <div class="feat-card">
+      <span class="feat-icon">📊</span>
+      <div class="feat-title">Statistiques</div>
+      <ul class="feat-list">
+        <li><strong>Page stats</strong> — totaux, dés lancés, critiques, fumbles</li>
+        <li><strong>Activité</strong> — classements joueurs et campagnes</li>
+        <li><strong>Accessible à tous</strong> — lien dans le menu utilisateur</li>
+      </ul>
+    </div>
+
+    <div class="feat-card">
       <span class="feat-icon">🔐</span>
       <div class="feat-title">Sécurité & Comptes</div>
       <ul class="feat-list">
         <li><strong>Inscription</strong> — sur invitation uniquement</li>
         <li><strong>Rate limiting</strong> — protection anti-brute-force</li>
         <li><strong>Lockout progressif</strong> — blocage temporaire après échecs</li>
+        <li><strong>CAPTCHA</strong> — protection des formulaires</li>
         <li><strong>Avatar</strong> — personnalisable via URL</li>
         <li><strong>Mot de passe</strong> — modifiable depuis le compte</li>
+        <li><strong>Niveaux de compte</strong> — Joueur, Créateur, MJ Virtuel, Admin</li>
       </ul>
     </div>
 

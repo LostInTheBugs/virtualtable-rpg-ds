@@ -122,15 +122,24 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:.
             <li class="feat"><strong>10 nouveaux systèmes</strong> — Cats! La Mascarade, Dune, Star Wars, Le Seigneur des Anneaux, Paranoia, Tomorrow City, Starfinder, Shadowrun, Vampire, Cyberpunk Red, Savage Worlds ; avec descriptions détaillées et logos dans le sélecteur</li>
             <li class="feat"><strong>Styles de dés 3D</strong> — 10 thèmes visuels (Classique, Rubis, Saphir, Émeraude, Améthyste, Doré, Ivoire, Glace, Lave, Nocturne) avec sélecteur de style ; animation réaliste avec chute et rebond</li>
             <li class="feat"><strong>Mode Table tactile</strong> — écran verrouillé avec QR code pour les tables tactiles horizontales ; idéal pour jouer en présentiel avec figurines</li>
+            <li class="feat"><strong>Système de ciblage</strong> — ciblez un token via clic droit, ligne de visibilité visible par le MJ seul, révélée aux joueurs au lancer de dés si la cible est isolée</li>
+            <li class="feat"><strong>4 niveaux de compte</strong> — Joueur (👤), Créateur (🛠), MJ Virtuel (🤖), Admin (🛡) avec permissions progressives</li>
+            <li class="feat"><strong>Page de statistiques</strong> — <code>/stats.html</code> avec totaux, dés, critiques, classements joueurs/campagnes, accessible à tous</li>
+            <li class="feat"><strong>CAPTCHA</strong> — protection des formulaires de connexion, inscription et page admin par CAPTCHA mathématique</li>
+            <li class="feat"><strong>Fonds de carte par thème</strong> — les cartes prédéfinies sont triées par pertinence selon le système de campagne</li>
+            <li class="feat"><strong>Dés 3D réalistes</strong> — physique avec gravité, collisions entre dés, multi-dés (2d6 = 2 dés), table de jeu visible</li>
           </ul>
         </div>
         <div class="change-group">
           <div class="change-group-title">Améliorations</div>
           <ul class="change-list">
             <li class="improve"><strong>Trust proxy</strong> — correction du rate limiter derrière Apache proxy</li>
-            <li class="improve"><strong>Schéma DB</strong> — ajout des colonnes <code>failed_attempts</code>, <code>locked_until</code>, <code>last_login</code>, <code>is_admin</code> manquantes</li>
+            <li class="improve"><strong>Schéma DB</strong> — ajout des colonnes <code>failed_attempts</code>, <code>locked_until</code>, <code>last_login</code>, <code>is_admin</code>, <code>tier</code> manquantes</li>
             <li class="improve"><strong>Cartes par défaut</strong> — 10 images de cartes pré-installées (crypte, donjon, forêt, village, etc.)</li>
             <li class="improve"><strong>Déploiement</strong> — script <code>deploy.sh</code> sans sudo (groupe docker) pour les mises à jour ; synchronisation automatique vers le DocumentRoot</li>
+            <li class="improve"><strong>Suppression de campagne</strong> — le MJ peut supprimer définitivement une campagne depuis les réglages</li>
+            <li class="improve"><strong>Numéros sur les faces des dés</strong> — d4/d8/d10/d12/d20 affichent leur valeur sur chaque face</li>
+            <li class="improve"><strong>Admin middleware</strong> — vérification DB du statut admin pour les tokens anciens</li>
           </ul>
         </div>
       </div>
