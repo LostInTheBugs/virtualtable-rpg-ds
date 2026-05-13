@@ -3735,7 +3735,44 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
   const FRICTION = 0.85;
   const GROUND_ANGLE_DAMP = 0.7;
 
-  // Create dice bodies
+  // Helper: ajoute des sprites numérotés sur chaque face d'un dé
+  function addFaceNumbers(mesh, numFaces) {
+    const geom = mesh.geometry;
+    const pos = geom.attributes.position;
+    const idx = geom.getIndex();
+    const triCount = Math.floor((idx ? idx.count : pos.count) / 3);
+    const edgeColor = style.edge || 0xc9a227;
+    const edgeHex = '#' + edgeColor.toString(16).padStart(6, '0');
+    const center = new THREE.Vector3();
+    const v = new THREE.Vector3();
+    for (let f = 0; f < Math.min(triCount, numFaces); f++) {
+      const i1 = idx ? idx.getX(f * 3) : f * 3;
+      const i2 = idx ? idx.getX(f * 3 + 1) : f * 3 + 1;
+      const i3 = idx ? idx.getX(f * 3 + 2) : f * 3 + 2;
+      center.set(0, 0, 0);
+      v.fromBufferAttribute(pos, i1); center.add(v);
+      v.fromBufferAttribute(pos, i2); center.add(v);
+      v.fromBufferAttribute(pos, i3); center.add(v);
+      center.divideScalar(3);
+      // Canvas for this face
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = 64;
+      const cx = cv.getContext('2d');
+      cx.clearRect(0, 0, 64, 64);
+      cx.fillStyle = edgeHex;
+      cx.textAlign = 'center';
+      cx.textBaseline = 'middle';
+      cx.font = 'bold 28px Inter, sans-serif';
+      cx.fillText(String(f + 1), 32, 32);
+      const tex = new THREE.CanvasTexture(cv);
+      const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.position.copy(center);
+      sprite.scale.set(0.55, 0.55, 1);
+      mesh.add(sprite);
+    }
+  }
+
   for (let i = 0; i < count; i++) {
     const geom = buildDiceGeometry(faces);
     let mat;
@@ -3755,6 +3792,8 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
       const edges = new THREE.EdgesGeometry(geom);
       const lineMat = new THREE.LineBasicMaterial({ color: style.edge || 0xc9a227 });
       mesh.add(new THREE.LineSegments(edges, lineMat));
+      // Add numbered sprites on each face
+      addFaceNumbers(mesh, faces);
     }
     // Spread dice in a fan
     const spread = (i - (count - 1) / 2) * 0.6;
