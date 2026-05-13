@@ -615,10 +615,10 @@ body.pf2e-campaign .dnd5e-label{font-size:0;}
 .tc-foot{padding:.8rem 1rem;border-top:1px solid var(--border);display:flex;gap:.6rem;justify-content:flex-end;}
 
 /* Dés 3D overlay */
-.dice3d-overlay{position:fixed;inset:0;z-index:210;pointer-events:none;display:none;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;background:radial-gradient(ellipse at center,rgba(0,0,0,.55) 0%,transparent 70%);}
+.dice3d-overlay{position:fixed;inset:0;z-index:210;pointer-events:none;display:none;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;background:rgba(0,0,0,.2);backdrop-filter:blur(2px);}
 .dice3d-canvas-wrap{position:relative;width:280px;height:220px;}
-#dice3dCanvas{width:280px;height:220px;border-radius:20px;filter:drop-shadow(0 0 24px rgba(201,162,39,.4));}
-.dice3d-result{font-family:'Cinzel',serif;font-size:3.2rem;font-weight:700;color:var(--accent);text-shadow:0 0 24px rgba(201,162,39,.7);opacity:0;transition:opacity .3s .1s, transform .3s .1s;transform:scale(.5);}
+#dice3dCanvas{width:280px;height:220px;border-radius:16px;background:transparent;}
+.dice3d-result{font-family:'Cinzel',serif;font-size:3rem;font-weight:700;color:var(--accent);text-shadow:0 0 16px rgba(201,162,39,.5);opacity:0;transition:opacity .3s .1s, transform .3s .1s;transform:scale(.5);}
 .dice3d-result.visible{opacity:1;transform:scale(1);}
 .dice3d-result.critical{color:#fbbf24;text-shadow:0 0 30px #fbbf24,0 0 60px #f59e0b;}
 .dice3d-result.fumble{color:var(--danger);text-shadow:0 0 30px var(--danger);}
@@ -3641,26 +3641,18 @@ function initDice3D() {
   dice3DRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   dice3DRenderer.shadowMap.enabled = false; // keep it fast
 
-  // Table surface (ground plane)
-  const tableGeom = new THREE.PlaneGeometry(6, 4);
+  // Table surface (ground plane) — très discret
+  const tableGeom = new THREE.PlaneGeometry(7, 5);
   const tableMat = new THREE.MeshPhongMaterial({
-    color: 0x1a1a2a,
-    specular: 0x222244,
-    shininess: 20,
+    color: 0x0e0e14,
+    transparent: true,
+    opacity: 0.25,
     side: THREE.DoubleSide,
   });
   const table = new THREE.Mesh(tableGeom, tableMat);
   table.rotation.x = -Math.PI / 2;
   table.position.y = -1.2;
   dice3DScene.add(table);
-
-  // Table edge glow
-  const edgeGeom = new THREE.EdgesGeometry(tableGeom);
-  const edgeMat = new THREE.LineBasicMaterial({ color: 0x333355, transparent: true, opacity: 0.4 });
-  const edgeLine = new THREE.LineSegments(edgeGeom, edgeMat);
-  edgeLine.rotation.x = -Math.PI / 2;
-  edgeLine.position.y = -1.19;
-  dice3DScene.add(edgeLine);
 
   // Lighting
   const ambLight = new THREE.AmbientLight(0x8888aa, 0.6);
