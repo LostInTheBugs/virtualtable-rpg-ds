@@ -1885,6 +1885,7 @@ body.table-mode .zone-subtoolbar{display:none !important;}
 <script src="/js/spells-db.js?v=2"></script>
 <script src="/js/spells-desc.js?v=1"></script>
 <script src="/js/items-db.js?v=1"></script>
+<script src="/js/systems.js?v=1"></script>
 <script src="/js/api.js?v=2"></script>
 <script>
 // ── State ────────────────────────────────────────────────────
@@ -2091,11 +2092,15 @@ function showPortraitStatsTip(e) {
     document.body.appendChild(tip);
   }
   const stats  = activeChar.stats || {};
-  const STATS  = ['str','dex','con','int','wis','cha'];
-  const LABELS = ['FOR','DEX','CON','INT','SAG','CHA'];
+  const sysStats = currentSystemStats();
+  const STATS  = sysStats.map(s => s.key);
+  const LABELS = sysStats.map(s => s.label);
   const inner  = STATS.map((s,i) => {
-    const val = stats[s] || 10;
-    const mod = Math.floor((val - 10) / 2);
+    const val = stats[s] || sysStats[i]?.default || 10;
+    const statDef = sysStats.find(st => st.key === s);
+    const base = statDef?.default || 10;
+    const isStandard = !['Warhammer Fantasy','Call of Cthulhu','Shadowrun','Vampire: The Masquerade','Cyberpunk Red','Savage Worlds'].includes(currentSystemName());
+    const mod = isStandard ? Math.floor((val - 10) / 2) : Math.floor((val - base) / 10);
     const ms  = (mod >= 0 ? '+' : '') + mod;
     return `<div class="stat-box" onclick="quickStatRoll('${s}','${LABELS[i]}')" title="Jet de ${LABELS[i]} (1d20${ms})">
       <div class="stat-val">${val}</div>
@@ -2132,11 +2137,22 @@ function hidePortraitStatsTip() {
   if (tip) tip.classList.remove('show');
 }
 
+function currentSystemName() {
+  return (campaign && campaign.system) || 'D&D 5e';
+}
+function currentSystemStats() {
+  return getSystemStats(currentSystemName());
+}
+function currentSystemSkills() {
+  return getSystemSkills(currentSystemName());
+}
+
 function renderCharSidebarStats() {
   if (!activeChar) return;
   const stats = activeChar.stats || {};
-  const STATS = ['str','dex','con','int','wis','cha'];
-  const LABELS = ['FOR','DEX','CON','INT','SAG','CHA'];
+  const sysStats = currentSystemStats();
+  const STATS = sysStats.map(s => s.key);
+  const LABELS = sysStats.map(s => s.label);
   const prof = activeChar.proficiency_bonus || 2;
 
   // Bind portrait hover (once per char change)
@@ -2156,14 +2172,19 @@ function renderCharSidebarStats() {
     const btn = document.querySelector('.btn-edit-char');
     if (btn && btn.parentNode) btn.parentNode.insertBefore(qroll, btn);
   }
-  // Jets de sauvegarde
-  const savingLabels = ['FOR','DEX','CON','INT','SAG','CHA'];
-  const savingAttrs  = ['str','dex','con','int','wis','cha'];
+  // Jets de sauvegarde (adaptés au système)
+  const sysStats = currentSystemStats();
+  const savingLabels = sysStats.map(s => s.label);
+  const savingAttrs  = sysStats.map(s => s.key);
   const proficiencies = activeChar.saving_throws || {};
   const savingHtml = `<div style="font-size:.65rem;color:var(--text2);margin:.3rem 0 .2rem;text-transform:uppercase;letter-spacing:.05em;">Jets de sauvegarde</div>
     <div style="display:flex;flex-wrap:wrap;gap:.3rem;">
     ${savingAttrs.map((a,i) => {
-      const mod = Math.floor(((stats[a]||10) - 10) / 2) + (proficiencies[a] ? prof : 0);
+      const sysStats2 = currentSystemStats();
+    const statDef = sysStats2.find(st => st.key === a);
+    const base = statDef?.default || 10;
+    const isStandard = !['Warhammer Fantasy','Call of Cthulhu','Shadowrun','Vampire: The Masquerade','Cyberpunk Red','Savage Worlds'].includes(currentSystemName());
+    const mod = Math.floor(((stats[a]||base) - base) / (isStandard ? 2 : 10)) + (proficiencies[a] ? prof : 0);
       const ms = (mod>=0?'+':'')+mod;
       return `<div onclick="quickSaveRoll('${a}','${savingLabels[i]}')" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:.2rem .4rem;font-size:.65rem;cursor:pointer;color:var(--text2)" title="JS ${savingLabels[i]} (1d20${ms})"><span style="color:var(--accent)">${ms}</span> ${savingLabels[i]}</div>`;
     }).join('')}
@@ -5902,16 +5923,8 @@ function focusCombatant(combatantName, charId) {
 }
 
 // ── Modal fiche personnage ────────────────────────────────────
-const STATS_DEF = [
-  {key:'str',label:'FOR'},{key:'dex',label:'DEX'},{key:'con',label:'CON'},
-  {key:'int',label:'INT'},{key:'wis',label:'SAG'},{key:'cha',label:'CHA'},
-];
-const SKILLS_DEF = [
-  {name:'Acrobaties',attr:'dex'},{name:'Arcanes',attr:'int'},{name:'Athlétisme',attr:'str'},
-  {name:'Discrétion',attr:'dex'},{name:'Dressage',attr:'wis'},{name:'Escamotage',attr:'dex'},
-  {name:'Histoire',attr:'int'},{name:'Intimidation',attr:'cha'},{name:'Investigation',attr:'int'},
-  {name:'Médecine',attr:'wis'},{name:'Nature',attr:'int'},{name:'Perception',attr:'wis'},
-  {name:'Performance',attr:'cha'},{name:'Persuasion',attr:'cha'},{name:'Religion',attr:'int'},
+// Les définitions sont chargées dynamiquement depuis systems.js
+// via les helpers currentSystemStats() / currentSystemSkills()
   {name:'Survie',attr:'wis'},{name:'Supercherie',attr:'cha'},{name:'Perspicacité',attr:'wis'},
 ];
 
@@ -6080,7 +6093,7 @@ function openCharSheetModal() {
   // Stats
   const statsGrid = document.getElementById('mcs-stats-grid');
   const stats = char.stats || {};
-  statsGrid.innerHTML = STATS_DEF.map(s => {
+  statsGrid.innerHTML = currentSystemStats().map(s => {
     const val = stats[s.key] || 10;
     const mod = Math.floor((val - 10) / 2);
     return `<div class="stat-edit-box">
@@ -6102,7 +6115,7 @@ function openCharSheetModal() {
   // Compétences
   const skillsGrid = document.getElementById('mcs-skills-grid');
   const profs = char.skills || {};
-  skillsGrid.innerHTML = SKILLS_DEF.map((sk, i) => `
+  skillsGrid.innerHTML = currentSystemSkills().map((sk, i) => `
     <label class="skill-row">
       <input type="checkbox" id="mcs-sk-${i}" ${profs[sk.name] ? 'checked' : ''}/>
       <span>${sk.name}</span>
@@ -6432,11 +6445,11 @@ async function saveCharSheet() {
 
   // Collecter les stats
   const stats = {};
-  STATS_DEF.forEach(s => { stats[s.key] = parseInt(document.getElementById(`mcs-stat-${s.key}`).value) || 10; });
+  currentSystemStats().forEach(s => { stats[s.key] = parseInt(document.getElementById(`mcs-stat-${s.key}`).value) || 10; });
 
   // Compétences
   const skills = {};
-  SKILLS_DEF.forEach((sk, i) => { if (document.getElementById(`mcs-sk-${i}`)?.checked) skills[sk.name] = true; });
+  currentSystemSkills().forEach((sk, i) => { if (document.getElementById(`mcs-sk-${i}`)?.checked) skills[sk.name] = true; });
 
   // Attaques
   const attacks = [...document.getElementById('mcs-attacks').querySelectorAll('.atk-row')].map(row => {

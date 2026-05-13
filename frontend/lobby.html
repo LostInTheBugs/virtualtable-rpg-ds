@@ -267,8 +267,10 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
           <label>Système de jeu</label>
           <select id="c-system">
             <option>D&amp;D 5e</option><option>Pathfinder 2e</option>
-            <option>Starfinder</option><option>Call of Cthulhu</option>
-            <option>Shadowrun</option><option>Warhammer</option><option>Autre</option>
+            <option>Warhammer Fantasy</option><option>Call of Cthulhu</option>
+            <option>Starfinder</option><option>Shadowrun</option>
+            <option>Vampire: The Masquerade</option><option>Cyberpunk Red</option>
+            <option>Savage Worlds</option><option>Autre</option>
           </select>
         </div>
         <div class="form-group">
@@ -457,86 +459,16 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 </div>
 
 <script src="/js/spells-db.js?v=1"></script>
+<script src="/js/systems.js?v=1"></script>
 <script src="/js/api.js?v=2"></script>
 <script>
-// ── Données ────────────────────────────────────────────────────
-const STATS = [
-  {key:'str',label:'FOR'},{key:'dex',label:'DEX'},{key:'con',label:'CON'},
-  {key:'int',label:'INT'},{key:'wis',label:'SAG'},{key:'cha',label:'CHA'},
-];
-
-// ── Combo-select data (D&D 5e — lobby uses D&D 5e only) ──────────
-const LOBBY_RACES   = ['Humain','Elfe','Elfe des bois','Elfe de haute noblesse','Elfe noir (Drow)','Nain des collines','Nain des montagnes','Halfelin','Gnome des forêts','Gnome des roches','Demi-Elfe','Demi-Orc','Tieffelin','Dragonien','Aasimar','Goliath','Triton','Tabaxi','Kenku','Lizardfolk','Tortle','Firbolg','Yuan-ti Pureblooded'];
-const LOBBY_CLASSES = ['Barbare','Barde','Clerc','Druide','Guerrier','Moine','Paladin','Rôdeur','Roublard','Ensorceleur','Occultiste','Magicien','Artificier','Sangdragon (Blood Hunter)'];
-
-function buildLobbyComboOptions(selId, options, currentVal) {
-  const sel = document.getElementById(selId);
-  if (!sel) return;
-  sel.innerHTML = '';
-  let hasMatch = false;
-  options.forEach(opt => {
-    const o = document.createElement('option');
-    o.value = opt; o.textContent = opt;
-    if (opt === currentVal) { o.selected = true; hasMatch = true; }
-    sel.appendChild(o);
-  });
-  const custom = document.createElement('option');
-  custom.value = '__custom__'; custom.textContent = '✏ Saisie libre…';
-  if (!hasMatch && currentVal) custom.selected = true;
-  sel.appendChild(custom);
-}
-
-function onLobbyComboSel(field) {
-  const sel   = document.getElementById(`ch-${field}-sel`);
-  const input = document.getElementById(`ch-${field}`);
-  if (!sel || !input) return;
-  if (sel.value === '__custom__') {
-    input.style.display = '';
-    input.focus();
-  } else {
-    input.style.display = 'none';
-    input.value = '';
-  }
-}
-
-function loadLobbyComboValue(field, value) {
-  const sel   = document.getElementById(`ch-${field}-sel`);
-  const input = document.getElementById(`ch-${field}`);
-  if (!sel) return;
-  if (!value) { sel.selectedIndex = 0; if (input) input.style.display = 'none'; return; }
-  let found = false;
-  for (const opt of sel.options) {
-    if (opt.value === value && opt.value !== '__custom__') { found = true; break; }
-  }
-  if (found) {
-    sel.value = value;
-    if (input) { input.style.display = 'none'; input.value = ''; }
-  } else {
-    sel.value = '__custom__';
-    if (input) { input.style.display = ''; input.value = value; }
-  }
-}
-
-function getLobbyComboValue(field) {
-  const sel   = document.getElementById(`ch-${field}-sel`);
-  const input = document.getElementById(`ch-${field}`);
-  if (!sel) return '';
-  if (input && input.style.display !== 'none') return input.value.trim();
-  if (sel.value === '__custom__') return input ? input.value.trim() : '';
-  return sel.value;
-}
-
-const SKILLS_DEF = [
-  {name:'Acrobaties',     attr:'dex'},{name:'Arcanes',       attr:'int'},
-  {name:'Athlétisme',    attr:'str'},{name:'Discrétion',    attr:'dex'},
-  {name:'Dressage',       attr:'wis'},{name:'Escamotage',   attr:'dex'},
-  {name:'Histoire',       attr:'int'},{name:'Intimidation', attr:'cha'},
-  {name:'Investigation',  attr:'int'},{name:'Médecine',     attr:'wis'},
-  {name:'Nature',         attr:'int'},{name:'Perception',   attr:'wis'},
-  {name:'Perspicacité',  attr:'wis'},{name:'Persuasion',   attr:'cha'},
-  {name:'Religion',       attr:'int'},{name:'Représentation',attr:'cha'},
-  {name:'Survie',         attr:'wis'},{name:'Tromperie',    attr:'cha'},
-];
+// ── Données (maintenant chargées depuis systems.js) ──────────────
+let currentCampaignSystem = 'D&D 5e';
+function systemStats()  { return getSystemStats(currentCampaignSystem); }
+function systemSkills() { return getSystemSkills(currentCampaignSystem); }
+function systemRaces()  { return getSystemRaces(currentCampaignSystem); }
+function systemClasses() { return getSystemClasses(currentCampaignSystem); }
+function systemDef()    { return getSystem(currentCampaignSystem); }
 
 let currentCampaignId = null;
 let currentCampaignRole = 'player';
@@ -635,6 +567,7 @@ async function selectCampaign(id) {
 function renderCampaignDetail(camp) {
   const isGM = camp.role === 'gm';
   currentCampaignRole = camp.role || 'player';
+  currentCampaignSystem = camp.system || 'D&D 5e';
   const myUser = getUser();
   const myChars = camp.characters.filter(c => isGM || c.user_id === myUser.id);
 
@@ -712,16 +645,17 @@ function enterGame(id) { window.location.href = `/game.html?campaign=${id}`; }
 
 // ── Fiche personnage ──────────────────────────────────────────
 function buildStatsGrid() {
-  document.getElementById('statsGrid').innerHTML = STATS.map(s => `
+  const sys = systemDef();
+  document.getElementById('statsGrid').innerHTML = sys.stats.map(s => `
     <div class="stat-box">
       <label>${s.label}</label>
-      <input type="number" id="stat-${s.key}" value="10" min="1" max="30" oninput="updateMod('${s.key}')"/>
+      <input type="number" id="stat-${s.key}" value="${s.default}" min="1" max="99" oninput="updateMod('${s.key}')"/>
       <div class="stat-mod" id="mod-${s.key}">+0</div>
     </div>`).join('');
 }
 
 function buildSkillsGrid() {
-  document.getElementById('skillsGrid').innerHTML = SKILLS_DEF.map(sk => `
+  document.getElementById('skillsGrid').innerHTML = systemSkills().map(sk => `
     <label class="skill-row">
       <input type="checkbox" id="skill-${sk.name}" value="${sk.name}"/>
       <span>${sk.name}</span>
@@ -731,11 +665,15 @@ function buildSkillsGrid() {
 
 function updateMod(key) {
   const val = parseInt(document.getElementById(`stat-${key}`).value) || 10;
-  const mod = Math.floor((val - 10) / 2);
+  const sys = systemDef();
+  const statDef = sys.stats.find(s => s.key === key);
+  // Certains systèmes (Warhammer, CoC) n'utilisent pas le modificateur (val-10)/2
+  const isStandard = !['Warhammer Fantasy','Call of Cthulhu','Shadowrun','Vampire: The Masquerade','Cyberpunk Red','Savage Worlds'].includes(currentCampaignSystem);
+  const mod = isStandard ? Math.floor((val - 10) / 2) : Math.floor((val - (statDef?.default || 10)) / 10);
   document.getElementById(`mod-${key}`).textContent = (mod >= 0 ? '+' : '') + mod;
 }
 
-function updateAllMods() { STATS.forEach(s => updateMod(s.key)); }
+function updateAllMods() { systemStats().forEach(s => updateMod(s.key)); }
 
 function switchCharTab(tab) {
   document.querySelectorAll('#charTabs .tab').forEach((t, i) => {
@@ -761,8 +699,8 @@ function openCharModal(charId) {
   document.getElementById('char-alert').style.display = 'none';
 
   // Initialize combos (reset + build options)
-  buildLobbyComboOptions('ch-race-sel',  LOBBY_RACES,   '');
-  buildLobbyComboOptions('ch-class-sel', LOBBY_CLASSES, '');
+  buildLobbyComboOptions('ch-race-sel',  systemRaces(),   '');
+  buildLobbyComboOptions('ch-class-sel', systemClasses(), '');
   // Reset
   ['name','portrait'].forEach(f => document.getElementById(`ch-${f}`).value = '');
   document.getElementById('ch-race').value  = '';
@@ -789,6 +727,26 @@ function openCharModal(charId) {
   renderItemList('inventory');
   renderItemList('spells');
 
+  // ── Adapter le formulaire au système ──
+  const sys = systemDef();
+  // Afficher/masquer l'onglet sorts
+  document.querySelectorAll('#charTabs .tab').forEach((t, i) => {
+    const tabs = ['identity','stats','skills','inventory','spells','notes'];
+    t.style.display = (tabs[i] === 'spells' && !sys.hasSpells) ? 'none' : '';
+  });
+  // Masquer le bonus de maîtrise si inutilisé
+  const profRow = document.getElementById('ch-prof')?.closest('.form-row');
+  if (profRow) profRow.style.display = sys.hasProficiency ? '' : 'none';
+  // Adapter les libellés de monnaie
+  const money = sys.money || ['po','pa','pc'];
+  ['ch-gp','ch-sp','ch-cp'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const label = el.previousElementSibling;
+    if (label && money[i]) label.textContent = money[i];
+    if (!money[i]) { el.closest('div').style.display = 'none'; }
+  });
+
   if (charId) {
     // Charger les données existantes
     API.characters.list(currentCampaignId).then(chars => {
@@ -804,9 +762,11 @@ function openCharModal(charId) {
       document.getElementById('ch-speed').value  = c.speed || 9;
       document.getElementById('ch-init').value   = c.initiative || 0;
       const stats = c.stats || {};
-      STATS.forEach(s => {
+      const sysDef = systemDef();
+      systemStats().forEach(s => {
         const inp = document.getElementById(`stat-${s.key}`);
-        if (inp) { inp.value = stats[s.key] || 10; updateMod(s.key); }
+        const statDef = sysDef.stats.find(st => st.key === s.key);
+        if (inp) { inp.value = stats[s.key] || statDef?.default || 10; updateMod(s.key); }
       });
       const skills = c.skills || {};
       Object.keys(skills).forEach(sk => {
@@ -1021,10 +981,10 @@ async function saveCharacter() {
   }
 
   const stats = {};
-  STATS.forEach(s => { stats[s.key] = parseInt(document.getElementById(`stat-${s.key}`)?.value) || 10; });
+  systemStats().forEach(s => { stats[s.key] = parseInt(document.getElementById(`stat-${s.key}`)?.value) || 10; });
 
   const skills = {};
-  SKILLS_DEF.forEach(sk => {
+  systemSkills().forEach(sk => {
     if (document.getElementById(`skill-${sk.name}`)?.checked) skills[sk.name] = true;
   });
 
@@ -1043,6 +1003,7 @@ async function saveCharacter() {
     spells:      spellItems,
     notes:       document.getElementById('ch-notes').value.trim() || null,
     portrait_url: document.getElementById('ch-portrait').value.trim() || null,
+    system_data: { system: currentCampaignSystem },
   };
 
   const btn = document.getElementById('btn-save-char');
