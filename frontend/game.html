@@ -627,6 +627,9 @@ body.pf2e-campaign .dnd5e-label{font-size:0;}
 .btn-3d-toggle{margin-top:.3rem;padding:.2rem .6rem;border-radius:12px;font-size:.72rem;border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer;transition:.2s;}
 .btn-3d-toggle:hover{border-color:var(--accent);color:var(--accent);}
 .btn-3d-toggle.on{border-color:var(--accent);color:var(--accent);background:rgba(201,162,39,.1);}
+.dice-style-btn{width:18px;height:18px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;transition:.15s;vertical-align:middle;}
+.dice-style-btn:hover{transform:scale(1.15);border-color:var(--text2);}
+.dice-style-btn[data-active="1"]{border-color:var(--accent) !important;transform:scale(1.25);}
 
 /* ── Chat panneau droit ── */
 .sidebar-right{width:var(--sidebar);background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
@@ -971,6 +974,11 @@ body.table-mode .zone-subtoolbar{display:none !important;}
       <div style="margin-top:.6rem;padding:.5rem;background:var(--surface2);border-radius:8px;font-size:.78rem;color:var(--text2);min-height:2rem;" id="lastRollResult">—</div>
       <div style="text-align:center;margin-top:.4rem;">
         <button class="btn-3d-toggle" id="btn3dToggle" onclick="toggle3DDice()">🎲 Dés 3D : OFF</button>
+        <div id="diceStylePicker" style="display:none;margin-top:.3rem;flex-wrap:wrap;gap:.3rem;justify-content:center;align-items:center;">
+          <span style="font-size:.65rem;color:var(--text2);margin-right:.15rem;">Style :</span>
+
+          ${(() => { const currentStyle = localStorage.getItem('rpg_dice_style')||'classic'; const cur = DICE_STYLES.find(s=>s.id===currentStyle); return `<span class="dice-style-name" style="font-size:.65rem;color:var(--text);margin-right:.2rem;">${cur?cur.name:'Classique'}</span>` + DICE_STYLES.map(s => `<button class="dice-style-btn" data-style="${s.id}" onclick="selectDiceStyle('${s.id}')" title="${s.name} — ${s.desc}" style="background:#${s.body.toString(16).padStart(6,'0')}" data-active="${s.id === currentStyle ? '1' : '0'}"></button>`).join(''); })()}
+        </div>
       </div>
     </div>
   </div>
@@ -1886,6 +1894,7 @@ body.table-mode .zone-subtoolbar{display:none !important;}
 <script src="/js/spells-desc.js?v=1"></script>
 <script src="/js/items-db.js?v=1"></script>
 <script src="/js/systems.js?v=1"></script>
+<script src="/js/dice-styles.js?v=1"></script>
 <script src="/js/api.js?v=2"></script>
 <script>
 // ── State ────────────────────────────────────────────────────
@@ -3589,7 +3598,17 @@ function toggle3DDice() {
     btn.textContent = `🎲 Dés 3D : ${dice3DEnabled ? 'ON' : 'OFF'}`;
     btn.classList.toggle('on', dice3DEnabled);
   }
+  const picker = document.getElementById('diceStylePicker');
+  if (picker) picker.style.display = dice3DEnabled ? 'flex' : 'none';
   if (dice3DEnabled && !dice3DRenderer) initDice3D();
+}
+
+function selectDiceStyle(id) {
+  setDiceStyle(id);
+  document.querySelectorAll('.dice-style-btn').forEach(btn => {
+    btn.dataset.active = btn.dataset.style === id ? '1' : '0';
+  });
+  // Le nouveau style sera appliqué au prochain lancer
 }
 
 function initDice3D() {
@@ -3616,7 +3635,8 @@ function initDice3D() {
   dice3DScene.add(backLight);
 }
 
-function buildD6Materials() {
+function buildD6Materials(style) {
+  style = style || getDiceStyle();
   const mats = [];
   const facePositions = {
     1: [[64, 64]],
@@ -3630,14 +3650,14 @@ function buildD6Materials() {
     const cv = document.createElement('canvas');
     cv.width = cv.height = 128;
     const cx = cv.getContext('2d');
-    cx.fillStyle = '#13131e';
+    cx.fillStyle = style.d6Bg || '#13131e';
     if (cx.roundRect) { cx.roundRect(4, 4, 120, 120, 16); cx.fill(); }
     else { cx.fillRect(4, 4, 120, 120); }
-    cx.strokeStyle = '#c9a227';
+    cx.strokeStyle = style.d6Border || '#c9a227';
     cx.lineWidth = 3;
     if (cx.roundRect) { cx.roundRect(4, 4, 120, 120, 16); cx.stroke(); }
     else { cx.strokeRect(4, 4, 120, 120); }
-    cx.fillStyle = '#c9a227';
+    cx.fillStyle = style.d6Dot || '#c9a227';
     (facePositions[f] || []).forEach(([px, py]) => {
       cx.beginPath(); cx.arc(px, py, 9, 0, Math.PI * 2); cx.fill();
     });
@@ -3670,16 +3690,20 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
   // Remove old mesh
   if (dice3DMesh) { dice3DScene.remove(dice3DMesh); dice3DMesh = null; }
 
+  // Reset camera position for different dice sizes
+  dice3DCamera.position.set(0, 0, faces > 12 ? 5 : 4.5);
+
   const geom = buildDiceGeometry(faces);
+  const style = getDiceStyle();
   let mat;
   if (faces === 6) {
-    mat = buildD6Materials();
+    mat = buildD6Materials(style);
   } else {
     mat = new THREE.MeshPhongMaterial({
-      color: 0x14141f,
-      emissive: 0x0a0a14,
-      specular: 0xc9a227,
-      shininess: 100,
+      color: style.body,
+      emissive: style.emissive,
+      specular: style.specular,
+      shininess: style.shininess,
       polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
     });
   }
@@ -3688,7 +3712,7 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
 
   if (faces !== 6) {
     const edges = new THREE.EdgesGeometry(geom);
-    const lineMat = new THREE.LineBasicMaterial({ color: 0xc9a227 });
+    const lineMat = new THREE.LineBasicMaterial({ color: style.edge || 0xc9a227 });
     dice3DMesh.add(new THREE.LineSegments(edges, lineMat));
   }
   dice3DScene.add(dice3DMesh);
@@ -3701,11 +3725,13 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
 
   overlay.style.display = 'flex';
 
+  // Lancer le dé depuis le haut
+  dice3DMesh.position.y = 0.8;
   const spinAxis = new THREE.Vector3(
     Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1
   ).normalize();
   const totalAngle = (10 + Math.random() * 8) * Math.PI * 2; // 10-18 rotations
-  const spinDuration = 1600;
+  const spinDuration = 1400;
   const startTime = performance.now();
 
   if (dice3DAnimId) cancelAnimationFrame(dice3DAnimId);
@@ -3713,7 +3739,18 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
   function frame(now) {
     const t = Math.min((now - startTime) / spinDuration, 1);
     const ease = 1 - Math.pow(1 - t, 3); // cubic ease-out
+    // Rotation
     dice3DMesh.setRotationFromAxisAngle(spinAxis, ease * totalAngle);
+    // Chute + rebond
+    if (t < 0.85) {
+      dice3DMesh.position.y = 0.8 * Math.cos(t / 0.85 * Math.PI * 0.5); // chute libre
+    } else {
+      const bounce = (t - 0.85) / 0.15;
+      dice3DMesh.position.y = 0.3 * Math.sin(bounce * Math.PI) * (1 - bounce); // micro-rebond
+    }
+    // Légère oscillation de la caméra
+    dice3DCamera.position.x = Math.sin(t * Math.PI * 2) * 0.08;
+    dice3DCamera.position.y = Math.abs(Math.cos(t * Math.PI * 3)) * 0.06;
     dice3DRenderer.render(dice3DScene, dice3DCamera);
 
     if (t < 1) {
@@ -3732,13 +3769,13 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
         labelEl.textContent = `${character_name} — ${displayLabel}`;
         labelEl.className = 'dice3d-label visible';
       }
-      // Continue rendering (idle bounce)
+      // Continue rendering (hover en douceur)
       let bounceStart = performance.now();
       function idleBounce(now2) {
         const bt = (now2 - bounceStart) / 1000;
         if (dice3DMesh) {
-          dice3DMesh.rotation.y += 0.008;
-          dice3DMesh.position.y = Math.sin(bt * 1.5) * 0.04;
+          dice3DMesh.rotation.y += 0.004;
+          dice3DMesh.position.y = Math.sin(bt * 0.8) * 0.03;
           dice3DRenderer.render(dice3DScene, dice3DCamera);
         }
         dice3DAnimId = requestAnimationFrame(idleBounce);
