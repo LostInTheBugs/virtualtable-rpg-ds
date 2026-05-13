@@ -3699,35 +3699,6 @@ function buildD6Materials(style) {
   return mats;
 }
 
-function buildNumberedMaterials(numFaces, style) {
-  const bg = '#' + style.body.toString(16).padStart(6, '0');
-  const edgeHex = '#' + (style.edge || 0xc9a227).toString(16).padStart(6, '0');
-  const mats = [];
-  for (let f = 1; f <= numFaces; f++) {
-    const cv = document.createElement('canvas');
-    cv.width = cv.height = 128;
-    const cx = cv.getContext('2d');
-    // Face background
-    cx.fillStyle = bg;
-    cx.fillRect(0, 0, 128, 128);
-    // Border
-    cx.strokeStyle = edgeHex;
-    cx.lineWidth = 3;
-    const inset = 6;
-    if (cx.roundRect) { cx.roundRect(inset, inset, 128 - inset * 2, 128 - inset * 2, 12); cx.stroke(); }
-    else { cx.strokeRect(inset, inset, 128 - inset * 2, 128 - inset * 2); }
-    // Number
-    cx.fillStyle = edgeHex;
-    cx.textAlign = 'center';
-    cx.textBaseline = 'middle';
-    const size = f > 9 ? 40 : 48;
-    cx.font = `bold ${size}px Inter, sans-serif`;
-    cx.fillText(String(f), 64, 64);
-    mats.push(new THREE.MeshPhongMaterial({ map: new THREE.CanvasTexture(cv) }));
-  }
-  return mats;
-}
-
 function buildDiceGeometry(faces) {
   // Slightly smaller so multiple dice fit on the table
   switch (faces) {
@@ -3770,17 +3741,6 @@ function rollDice3D({ dice, rolls, total, character_name, label }) {
     let mat;
     if (faces === 6) {
       mat = buildD6Materials(style);
-    } else if (faces === 4 || faces === 8 || faces === 10 || faces === 12 || faces === 20) {
-      // Add per-face groups for multi-material support
-      const idx = geom.getIndex();
-      if (idx) {
-        geom.clearGroups();
-        const triCount = idx.count / 3;
-        for (let f = 0; f < triCount && f < faces; f++) {
-          geom.addGroup(f * 3, 3, f);
-        }
-      }
-      mat = buildNumberedMaterials(Math.min(faces, idx ? idx.count / 3 : 1), style);
     } else {
       mat = new THREE.MeshPhongMaterial({
         color: style.body,
