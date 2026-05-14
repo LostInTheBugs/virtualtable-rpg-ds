@@ -380,7 +380,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:.6rem;margin-top:.4rem;">
-          <div id="portraitPreview" style="width:56px;height:56px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.6rem;overflow:hidden;flex-shrink:0;">🧙</div>
+          <div id="portraitPreview" onclick="openPortraitPreview()" style="width:56px;height:56px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.6rem;overflow:hidden;flex-shrink:0;cursor:pointer;" title="Cliquer pour voir en grand">🧙</div>
           <div>
             <span style="font-size:.78rem;color:var(--text2);">Prévisualisation du portrait</span>
             <a id="ch-anim-link" href="#" target="_blank" style="display:none;font-size:.7rem;color:var(--accent2);margin-top:.15rem;">🎬 Voir l'animation</a>
@@ -826,6 +826,8 @@ function openCharModal(charId) {
   // Initialize combos (reset + build options)
   buildLobbyComboOptions('ch-race-sel',  systemRaces(),   '');
   buildLobbyComboOptions('ch-class-sel', systemClasses(), '');
+  // Déclencher le portrait pour la race par défaut (première de la liste)
+  setTimeout(() => onLobbyComboSel('race'), 50);
   // Reset
   ['name','portrait'].forEach(f => document.getElementById(`ch-${f}`).value = '');
   document.getElementById('ch-race').value  = '';
@@ -920,6 +922,11 @@ function openCharModal(charId) {
   }
 
   openModal('char');
+}
+
+function openPortraitPreview() {
+  const url = document.getElementById('ch-portrait')?.value.trim();
+  if (url) window.open(url, '_blank');
 }
 
 function updatePortraitPreview() {
