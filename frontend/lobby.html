@@ -540,12 +540,23 @@ function onLobbyComboSel(field) {
       }
       // Afficher le lien animation si disponible
       const animLink = document.getElementById('ch-anim-link');
-      const animPath = `/img/${imgKey}-anim.gif`;
-      // Vérifier si l'animation existe (testée côté serveur)
-      fetch(animPath, { method: 'HEAD' }).then(r => {
+      // Priorité au MP4 Grok (meilleure qualité), fallback GIF
+      const animPaths = [`/img/${imgKey}-grok.mp4`, `/img/${imgKey}-anim.gif`];
+      // Teste le MP4 d'abord
+      fetch(animPaths[0], { method: 'HEAD' }).then(r => {
         if (r.ok && animLink) {
           animLink.style.display = 'inline';
-          animLink.href = animPath;
+          animLink.href = animPaths[0];
+          animLink.textContent = '🎬 Voir l\'animation (Grok)';
+        } else {
+          // Fallback GIF
+          fetch(animPaths[1], { method: 'HEAD' }).then(r2 => {
+            if (r2.ok && animLink) {
+              animLink.style.display = 'inline';
+              animLink.href = animPaths[1];
+              animLink.textContent = '🎬 Voir l\'animation';
+            }
+          }).catch(() => {});
         }
       }).catch(() => {});
     }
