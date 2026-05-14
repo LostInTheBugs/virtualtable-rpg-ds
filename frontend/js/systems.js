@@ -559,7 +559,7 @@ const RPG_SYSTEMS = {
 // ── Vidéos d'introduction par système ──────────────────────────
 // URL vers un GIF/MP4 d'intro cinématique, affiché au premier lancement de campagne
 const SYSTEM_INTRO_VIDEOS = {
-  "Cats! La Mascarade": "/img/cats-intro.gif",
+  "Cats! La Mascarade": "/img/cats-intro.mp4",
   // Les autres systèmes seront ajoutés au fur et à mesure
 };
 
