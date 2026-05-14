@@ -615,6 +615,19 @@ body.pf2e-campaign .dnd5e-label{font-size:0;}
 .tc-foot{padding:.8rem 1rem;border-top:1px solid var(--border);display:flex;gap:.6rem;justify-content:flex-end;}
 
 /* Dés 3D overlay */
+/* Intro vidéo */
+.intro-overlay{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;}
+.intro-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);}
+.intro-card{position:relative;z-index:1;background:var(--surface);border:1px solid var(--border);border-radius:16px;width:90%;max-width:640px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:introFade .4s ease;}
+@keyframes introFade{from{opacity:0;transform:translateY(20px) scale(.95);}to{opacity:1;transform:translateY(0) scale(1);}}
+.intro-header{display:flex;align-items:center;padding:.8rem 1.2rem;border-bottom:1px solid var(--border);}
+.intro-title{font-family:'Cinzel',serif;font-size:.95rem;color:var(--accent);flex:1;}
+.intro-close{background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;padding:.2rem;}
+.intro-close:hover{color:var(--text);}
+.intro-video-wrap{background:#000;display:flex;align-items:center;justify-content:center;max-height:60vh;}
+.intro-video-wrap video{width:100%;max-height:60vh;display:block;}
+.intro-footer{padding:.7rem 1.2rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;}
+
 .dice3d-overlay{position:fixed;inset:0;z-index:210;pointer-events:none;display:none;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;background:rgba(0,0,0,.2);backdrop-filter:blur(2px);}
 .dice3d-canvas-wrap{position:relative;width:280px;height:220px;}
 #dice3dCanvas{width:280px;height:220px;border-radius:16px;background:transparent;}
@@ -1280,6 +1293,23 @@ body.table-mode .zone-subtoolbar{display:none !important;}
         <div class="macro-color-pick"        id="mcp-5" style="background:#e2e8f0" onclick="selectMacroColor(5)"></div>
       </div>
       <button class="btn-primary" onclick="addMacro()" style="width:100%;padding:.45rem;">＋ Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Intro vidéo overlay -->
+<div class="intro-overlay" id="introOverlay">
+  <div class="intro-backdrop" onclick="closeIntro()"></div>
+  <div class="intro-card">
+    <div class="intro-header">
+      <span class="intro-title" id="introTitle">Bienvenue</span>
+      <button class="intro-close" onclick="closeIntro()">✕</button>
+    </div>
+    <div class="intro-video-wrap" id="introVideoWrap">
+      <video id="introVideo" autoplay muted playsinline></video>
+    </div>
+    <div class="intro-footer">
+      <button class="btn btn-secondary" onclick="closeIntro()">Passer l'introduction</button>
     </div>
   </div>
 </div>
@@ -1971,6 +2001,48 @@ function updateTableOnlineCount() {
   if (el) el.textContent = Object.keys(onlineUsers).length + ' en ligne';
 }
 
+// ── Vidéo d'introduction ─────────────────────────────────────
+const INTRO_SEEN_KEY = 'rpg_intro_seen_';
+
+function showIntroVideo(videoUrl, title) {
+  const overlay = document.getElementById('introOverlay');
+  const video = document.getElementById('introVideo');
+  const titleEl = document.getElementById('introTitle');
+  if (!overlay || !video) return;
+  titleEl.textContent = title || 'Introduction';
+  video.src = videoUrl;
+  video.load();
+  overlay.style.display = 'flex';
+  video.play().catch(() => {});
+  // Auto-fermer après la fin de la vidéo
+  video.onended = () => { closeIntro(); };
+}
+
+function closeIntro() {
+  const overlay = document.getElementById('introOverlay');
+  const video = document.getElementById('introVideo');
+  if (overlay) overlay.style.display = 'none';
+  if (video) { video.pause(); video.src = ''; }
+}
+
+function checkAndShowIntro() {
+  const sys = campaign?.system;
+  if (!sys) return;
+  const videoUrl = SYSTEM_INTRO_VIDEOS[sys] || SYSTEM_INTRO_VIDEOS[SYSTEM_ALIASES[sys]];
+  if (!videoUrl) return;
+  const key = INTRO_SEEN_KEY + CAMPAIGN_ID;
+  // Si le paramètre intro=1 est présent, on force l'affichage même si déjà vu
+  const forceIntro = params.get('intro') === '1';
+  if (!forceIntro && localStorage.getItem(key)) return;
+  // Vérifier que la vidéo existe
+  fetch(videoUrl, { method: 'HEAD' }).then(r => {
+    if (r.ok) {
+      localStorage.setItem(key, '1');
+      showIntroVideo(videoUrl, sys + ' — Introduction');
+    }
+  }).catch(() => {});
+}
+
 // ── Auth guard ───────────────────────────────────────────────
 (async () => {
   if (!CAMPAIGN_ID) { window.location.href = '/lobby.html'; return; }
@@ -1981,6 +2053,8 @@ function updateTableOnlineCount() {
     setUser(user);
     await loadCampaign();
     connectSocket();
+    // Vérifier la vidéo d'intro après chargement
+    setTimeout(checkAndShowIntro, 1500);
   } catch { clearToken(); window.location.href = '/'; }
 })();
 

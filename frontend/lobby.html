@@ -689,6 +689,22 @@ async function selectCampaign(id) {
   }
 }
 
+function getIntroVideoUrl(systemName) {
+  const sys = getSystem(systemName);
+  const url = SYSTEM_INTRO_VIDEOS[sys?.label] || SYSTEM_INTRO_VIDEOS[systemName];
+  return url || null;
+}
+
+function playIntroFromLobby() {
+  const url = getIntroVideoUrl(currentCampaignSystem);
+  if (url) {
+    // Ouvrir la page de jeu avec un paramètre pour forcer l'intro
+    window.location.href = `/game.html?campaign=${currentCampaignId}&intro=1`;
+  } else {
+    alert('Aucune vidéo d\'introduction disponible pour ce système.');
+  }
+}
+
 function renderCampaignDetail(camp) {
   const isGM = camp.role === 'gm';
   currentCampaignRole = camp.role || 'player';
@@ -741,6 +757,7 @@ function renderCampaignDetail(camp) {
     ${(camp.settings?.display_mode === 'map_unique') ? `
       <button class="btn btn-secondary" onclick="window.open('/game.html?campaign=${camp.id}&mode=display','_blank')" style="background:rgba(139,92,246,.15);border-color:var(--accent2);color:var(--accent2);">🖥 Carte</button>
     ` : ''}
+    ${getIntroVideoUrl(camp.system) ? `<button class="btn btn-secondary" onclick="playIntroFromLobby()" style="background:rgba(201,162,39,.1);border-color:var(--accent);color:var(--accent);">🎬 Introduction</button>` : ''}
     <button class="btn btn-primary" onclick="enterGame('${camp.id}')">⚔ Entrer dans la partie →</button>
   </div>`;
 }

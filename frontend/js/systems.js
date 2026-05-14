@@ -556,6 +556,13 @@ const RPG_SYSTEMS = {
   },
 };
 
+// ── Vidéos d'introduction par système ──────────────────────────
+// URL vers un GIF/MP4 d'intro cinématique, affiché au premier lancement de campagne
+const SYSTEM_INTRO_VIDEOS = {
+  "Cats! La Mascarade": "/img/cats-intro.gif",
+  // Les autres systèmes seront ajoutés au fur et à mesure
+};
+
 // ── Alias de compatibilité (campagnes créées avant renommage) ─
 const SYSTEM_ALIASES = {
   'Warhammer': 'Warhammer Fantasy',
