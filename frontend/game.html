@@ -1306,7 +1306,7 @@ body.table-mode .zone-subtoolbar{display:none !important;}
       <button class="intro-close" onclick="closeIntro()">✕</button>
     </div>
     <div class="intro-video-wrap" id="introVideoWrap">
-      <video id="introVideo" autoplay muted playsinline></video>
+                  <video id="introVideo" autoplay playsinline></video>
     </div>
     <div class="intro-footer">
       <button class="btn btn-secondary" onclick="closeIntro()">Passer l'introduction</button>
@@ -2011,10 +2011,27 @@ function showIntroVideo(videoUrl, title) {
   if (!overlay || !video) return;
   titleEl.textContent = title || 'Introduction';
   video.src = videoUrl;
+  video.muted = false;
   video.load();
   overlay.style.display = 'flex';
-  video.play().catch(() => {});
-  // Auto-fermer après la fin de la vidéo
+  // Tenter la lecture avec son — si bloqué par le navigateur, forcer le mute
+  const playPromise = video.play();
+  if (playPromise) {
+    playPromise.catch(() => {
+      video.muted = true;
+      video.play().catch(() => {});
+      // Ajouter un bouton pour activer le son
+      const footer = overlay.querySelector('.intro-footer');
+      if (footer && !document.getElementById('introUnmuteBtn')) {
+        const btn = document.createElement('button');
+        btn.id = 'introUnmuteBtn';
+        btn.className = 'btn btn-secondary';
+        btn.textContent = '🔇 Activer le son';
+        btn.onclick = () => { video.muted = !video.muted; btn.textContent = video.muted ? '🔇 Activer le son' : '🔊 Son activé'; };
+        footer.insertBefore(btn, footer.firstChild);
+      }
+    });
+  }
   video.onended = () => { closeIntro(); };
 }
 
@@ -2022,7 +2039,9 @@ function closeIntro() {
   const overlay = document.getElementById('introOverlay');
   const video = document.getElementById('introVideo');
   if (overlay) overlay.style.display = 'none';
-  if (video) { video.pause(); video.src = ''; }
+  if (video) { video.pause(); video.muted = false; video.src = ''; }
+  const unmuteBtn = document.getElementById('introUnmuteBtn');
+  if (unmuteBtn) unmuteBtn.remove();
 }
 
 function checkAndShowIntro() {
