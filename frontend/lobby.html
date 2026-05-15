@@ -541,24 +541,22 @@ function onLobbyComboSel(field) {
       // Afficher le lien animation si disponible
       const animLink = document.getElementById('ch-anim-link');
       // Priorité au MP4 Grok (meilleure qualité), fallback GIF
-      const animPaths = [`/img/${imgKey}-grok.mp4`, `/img/${imgKey}-anim.gif`];
-      // Teste le MP4 d'abord
-      fetch(animPaths[0], { method: 'HEAD' }).then(r => {
-        if (r.ok && animLink) {
-          animLink.style.display = 'inline';
-          animLink.href = animPaths[0];
-          animLink.textContent = '🎬 Voir l\'animation (Grok)';
-        } else {
-          // Fallback GIF
-          fetch(animPaths[1], { method: 'HEAD' }).then(r2 => {
-            if (r2.ok && animLink) {
-              animLink.style.display = 'inline';
-              animLink.href = animPaths[1];
-              animLink.textContent = '🎬 Voir l\'animation';
-            }
-          }).catch(() => {});
-        }
-      }).catch(() => {});
+      const animPaths = [`/img/${imgKey}-i2v.mp4`, `/img/${imgKey}-grok.mp4`, `/img/${imgKey}-anim.gif`];
+      // Cherche l'animation dispo (I2V > Grok > GIF)
+      function tryAnim(idx) {
+        if (idx >= animPaths.length || !animLink) return;
+        fetch(animPaths[idx], { method: 'HEAD' }).then(r => {
+          if (r.ok) {
+            animLink.style.display = 'inline';
+            animLink.href = animPaths[idx];
+            const labels = ['🎬 Animation (LTX)', '🎬 Animation (Grok)', '🎬 Voir l\'animation'];
+            animLink.textContent = labels[idx] || labels[labels.length-1];
+          } else {
+            tryAnim(idx + 1);
+          }
+        }).catch(() => tryAnim(idx + 1));
+      }
+      tryAnim(0);
     }
   }
 }
