@@ -55,7 +55,7 @@ async function initDB() {
 }
 
 // ── Démarrage ────────────────────────────────────────────────
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8007;
 server.listen(PORT, async () => {
   console.log(`[RPG] Serveur démarré sur le port ${PORT}`);
   await initDB();

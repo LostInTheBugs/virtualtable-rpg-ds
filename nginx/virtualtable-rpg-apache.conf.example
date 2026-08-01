@@ -38,12 +38,12 @@
 
     # RPG Backend — API REST
     ProxyPreserveHost On
-    ProxyPass        /rpg/ http://127.0.0.1:3001/rpg/
-    ProxyPassReverse /rpg/ http://127.0.0.1:3001/rpg/
+    ProxyPass        /rpg/ http://127.0.0.1:8007/rpg/
+    ProxyPassReverse /rpg/ http://127.0.0.1:8007/rpg/
 
     # RPG Backend — Socket.io (WebSocket)
     RewriteEngine On
     RewriteCond %{HTTP:Upgrade} websocket [NC]
     RewriteCond %{HTTP:Connection} upgrade [NC]
-    RewriteRule ^/rpg/socket.io/(.*) ws://127.0.0.1:3001/rpg/socket.io/$1 [P,L]
+    RewriteRule ^/rpg/socket.io/(.*) ws://127.0.0.1:8007/rpg/socket.io/$1 [P,L]
 </VirtualHost>

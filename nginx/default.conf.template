@@ -39,7 +39,7 @@ server {
 
     # ── RPG Backend (API REST + Socket.io) ─────────────────
     location /rpg/ {
-        proxy_pass           http://rpg:3001/rpg/;
+        proxy_pass           http://rpg:8007/rpg/;
         proxy_http_version   1.1;
         proxy_set_header     Upgrade $http_upgrade;
         proxy_set_header     Connection "upgrade";

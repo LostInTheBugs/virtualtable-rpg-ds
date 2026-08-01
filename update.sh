@@ -128,7 +128,7 @@ if $BACKEND_CHANGED; then
   docker compose up -d --build rpg
   # Attendre que le backend soit prêt
   MAX=20; i=0
-  until docker compose exec -T rpg wget -qO- http://localhost:3001/rpg/api/health &>/dev/null; do
+  until docker compose exec -T rpg wget -qO- "http://localhost:${RPG_PORT}/rpg/api/health" &>/dev/null; do
     sleep 2; i=$((i+1))
     [[ $i -ge $MAX ]] && error "Le backend ne répond pas. Vérifiez : docker compose logs rpg"
   done

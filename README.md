@@ -36,7 +36,7 @@ Le script pose trois questions au démarrage :
 **Serveur web** — trois options :
 - Nginx intégré (Docker) avec SSL automatique Let's Encrypt — recommandé pour un serveur vierge
 - Nginx ou Apache déjà installé — le script affiche les directives à ajouter à votre vhost
-- Aucun proxy — le backend est exposé directement sur le port 3001
+- Aucun proxy — le backend est exposé directement sur le port 8007
 
 **Base de données** — deux options :
 - PostgreSQL intégré (Docker) — aucune configuration requise
@@ -44,40 +44,50 @@ Le script pose trois questions au démarrage :
 
 Le script génère ensuite automatiquement les secrets (JWT, mot de passe DB) et démarre l'application.
 
-### Configuration manuelle
+## Configuration
 
-Pour pré-remplir les paramètres avant de lancer :
+Copiez le fichier d'exemple et éditez les variables :
 
 ```bash
 cp .env.example .env
-nano .env          # Renseigner les valeurs souhaitées
-sudo ./install.sh  # Utilise les valeurs du .env, pose uniquement les questions manquantes
+nano .env
 ```
 
-## Mise à jour
+**Variables d'environnement principales :**
+
+| Variable | Défaut | Description |
+|---|---|---|
+| `RPG_PORT` | `8007` | Port d'écoute du backend |
+| `RPG_BIND` | `127.0.0.1` | Interface de binding |
+| `DATABASE_URL` | — | URL de connexion PostgreSQL |
+| `JWT_SECRET` | — | Clé secrète JWT (générée automatiquement) |
+| `ALLOWED_ORIGIN` | — | URL publique pour CORS |
+| `DOMAIN` | — | Nom de domaine |
+| `COMPOSE_PROFILES` | `db,nginx` | Profils Docker : `db`, `nginx` |
+
+**Dépendances :** Docker >= 20.10 avec le plugin Compose, Git.
+
+## Utilisation
 
 ```bash
-git pull
-docker compose up -d --build rpg
-# Pour le frontend (pas de rebuild nécessaire) :
-# git pull suffit — nginx sert les fichiers directement depuis ./frontend/
-```
+# Installation
+sudo ./install.sh
 
-## Commandes utiles
+# Mise à jour
+sudo ./update.sh
 
-```bash
-# Logs en direct
+# Logs
 docker compose logs -f rpg
 
-# Redémarrer un service
-docker compose restart rpg
-
-# Sauvegarder la base de données
+# Sauvegarde
 docker exec rpg-db pg_dump -U rpg rpg > backup_$(date +%Y%m%d).sql
-
-# Restaurer une sauvegarde
-cat backup.sql | docker exec -i rpg-db psql -U rpg rpg
 ```
+
+## Version
+
+Version courante : **2026.08.001**
+
+[Notes de version et releases GitHub](https://github.com/LostInTheBugs/virtualtable-rpg-ds/releases)
 
 ## Structure du projet
 

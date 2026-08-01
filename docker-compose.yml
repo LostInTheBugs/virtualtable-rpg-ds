@@ -40,17 +40,17 @@ services:
     restart: unless-stopped
     ports:
       # Exposé directement si pas de nginx intégré, sinon accessible via nginx uniquement
-      - "${RPG_BIND:-127.0.0.1}:${RPG_PORT:-3001}:3001"
+      - "${RPG_BIND:-127.0.0.1}:${RPG_PORT:-8007}:${RPG_PORT:-8007}"
     environment:
       DATABASE_URL: "${DATABASE_URL}"
       JWT_SECRET: "${JWT_SECRET}"
-      PORT: "3001"
+      PORT: "${RPG_PORT:-8007}"
       ALLOWED_ORIGIN: "${ALLOWED_ORIGIN}"
       UPLOAD_DIR: "/app/uploads"
     volumes:
       - ./frontend/uploads:/app/uploads
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/rpg/api/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${RPG_PORT:-8007}/rpg/api/health || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 10

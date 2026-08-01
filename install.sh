@@ -104,7 +104,7 @@ if $USE_BUNDLED_NGINX && [[ -z "${CERTBOT_EMAIL:-}" ]]; then
 fi
 
 # Port et binding
-[[ -z "${RPG_PORT:-}" ]] && RPG_PORT=3001
+[[ -z "${RPG_PORT:-}" ]] && RPG_PORT=8007
 [[ -z "${RPG_BIND:-}" ]] && RPG_BIND="127.0.0.1"
 sed -i "s|^RPG_PORT=.*|RPG_PORT=${RPG_PORT}|" .env
 sed -i "s|^RPG_BIND=.*|RPG_BIND=${RPG_BIND}|" .env
@@ -215,7 +215,7 @@ docker compose up -d --build
 # ── 10. Attendre que le backend soit prêt ─────────────────────
 info "Attente du démarrage du backend..."
 MAX=30; i=0
-until docker compose exec -T rpg wget -qO- http://localhost:3001/rpg/api/health &>/dev/null; do
+until docker compose exec -T rpg wget -qO- "http://localhost:${RPG_PORT}/rpg/api/health" &>/dev/null; do
   sleep 2; i=$((i+1))
   [[ $i -ge $MAX ]] && error "Le backend ne répond pas. Vérifiez : docker compose logs rpg"
 done
