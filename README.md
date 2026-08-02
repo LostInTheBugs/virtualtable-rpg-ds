@@ -111,6 +111,21 @@ Version courante : **2026.08.001**
 - HTTPS obligatoire via Let's Encrypt
 - JWT pour l'authentification
 
+## Development cost (LLM)
+
+This project was built entirely through AI-assisted sessions (Hermes Agent, deepseek-v4-pro / deepseek-v4-flash). Usage so far (cumulative as of 2026-08-02):
+
+| Metric | Value |
+|---|---|
+| Input tokens | 354 369 |
+| Output tokens | 214 754 |
+| **Total (input + output)** | **569 123** |
+| Cache read (reused at reduced price) | 17 685 120 |
+| API calls | 299 |
+| **Estimated cost** | **≈ 0.41 USD** |
+
+Full breakdown: [TOKENS.md](TOKENS.md).
+
 ## Licence
 
 Usage personnel / auto-hébergement.
