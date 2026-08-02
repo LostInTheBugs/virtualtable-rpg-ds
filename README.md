@@ -1,29 +1,29 @@
 # VirtualTable RPG
 
-Table de jeu de rôle virtuelle en ligne, auto-hébergée.
+Self-hosted online tabletop RPG (VTT).
 
-**Stack** : Node.js · Express · Socket.io · PostgreSQL · Docker · nginx
+**Stack**: Node.js · Express · Socket.io · PostgreSQL · Docker · nginx
 
-## Fonctionnalités
+## Features
 
-- Cartes interactives avec tokens, brouillard de guerre, murs et éclairage dynamique
-- Fiches de personnage D&D 5e complètes (stats, sorts, inventaire, sous-classes)
-- Chat avec jets de dés, messages privés, macros
-- Musique d'ambiance et effets météo
-- Journal de campagne Markdown, handouts partagés, tables aléatoires
-- Montée de niveau avec approbation MJ (règles D&D 5e)
-- Système de vision par personnage
-- Import de cartes UVTT
+- Interactive maps with tokens, fog of war, walls and dynamic lighting
+- Full D&D 5e character sheets (stats, spells, inventory, subclasses)
+- Chat with dice rolls, private messages, macros
+- Ambient music and weather effects
+- Markdown campaign journal, shared handouts, random tables
+- Leveling with GM approval (D&D 5e rules)
+- Per-character vision system
+- UVTT map import
 
 ## Installation
 
-### Prérequis
+### Prerequisites
 
-- Un serveur Linux (Ubuntu 22.04 / Debian 12 recommandé)
-- Docker >= 20.10 avec le plugin Compose
+- A Linux server (Ubuntu 22.04 / Debian 12 recommended)
+- Docker >= 20.10 with the Compose plugin
 - Git
 
-### Installation
+### Install
 
 ```bash
 git clone https://github.com/LostInTheBugs/virtualtable-rpg.git
@@ -31,85 +31,85 @@ cd virtualtable-rpg
 sudo ./install.sh
 ```
 
-Le script pose trois questions au démarrage :
+The script asks three questions at startup:
 
-**Serveur web** — trois options :
-- Nginx intégré (Docker) avec SSL automatique Let's Encrypt — recommandé pour un serveur vierge
-- Nginx ou Apache déjà installé — le script affiche les directives à ajouter à votre vhost
-- Aucun proxy — le backend est exposé directement sur le port 8007
+**Web server** — three options:
+- Built-in Nginx (Docker) with automatic Let's Encrypt SSL — recommended for a fresh server
+- Nginx or Apache already installed — the script prints the directives to add to your vhost
+- No proxy — the backend is exposed directly on port 8007
 
-**Base de données** — deux options :
-- PostgreSQL intégré (Docker) — aucune configuration requise
-- PostgreSQL existant (local ou distant) — vous fournissez l'URL de connexion ; le schéma est appliqué automatiquement si `psql` est disponible
+**Database** — two options:
+- Built-in PostgreSQL (Docker) — no configuration required
+- Existing PostgreSQL (local or remote) — you provide the connection URL; the schema is applied automatically if `psql` is available
 
-Le script génère ensuite automatiquement les secrets (JWT, mot de passe DB) et démarre l'application.
+The script then automatically generates the secrets (JWT, DB password) and starts the application.
 
 ## Configuration
 
-Copiez le fichier d'exemple et éditez les variables :
+Copy the example file and edit the variables:
 
 ```bash
 cp .env.example .env
 nano .env
 ```
 
-**Variables d'environnement principales :**
+**Main environment variables:**
 
-| Variable | Défaut | Description |
+| Variable | Default | Description |
 |---|---|---|
-| `RPG_PORT` | `8007` | Port d'écoute du backend |
-| `RPG_BIND` | `127.0.0.1` | Interface de binding |
-| `DATABASE_URL` | — | URL de connexion PostgreSQL |
-| `JWT_SECRET` | — | Clé secrète JWT (générée automatiquement) |
-| `ALLOWED_ORIGIN` | — | URL publique pour CORS |
-| `DOMAIN` | — | Nom de domaine |
-| `COMPOSE_PROFILES` | `db,nginx` | Profils Docker : `db`, `nginx` |
+| `RPG_PORT` | `8007` | Backend listen port |
+| `RPG_BIND` | `127.0.0.1` | Binding interface |
+| `DATABASE_URL` | — | PostgreSQL connection URL |
+| `JWT_SECRET` | — | JWT secret key (auto-generated) |
+| `ALLOWED_ORIGIN` | — | Public URL for CORS |
+| `DOMAIN` | — | Domain name |
+| `COMPOSE_PROFILES` | `db,nginx` | Docker profiles: `db`, `nginx` |
 
-**Dépendances :** Docker >= 20.10 avec le plugin Compose, Git.
+**Dependencies:** Docker >= 20.10 with the Compose plugin, Git.
 
-## Utilisation
+## Usage
 
 ```bash
-# Installation
+# Install
 sudo ./install.sh
 
-# Mise à jour
+# Update
 sudo ./update.sh
 
 # Logs
 docker compose logs -f rpg
 
-# Sauvegarde
+# Backup
 docker exec rpg-db pg_dump -U rpg rpg > backup_$(date +%Y%m%d).sql
 ```
 
 ## Version
 
-Version courante : **2026.08.001**
+Current version: **2026.08.001**
 
-[Notes de version et releases GitHub](https://github.com/LostInTheBugs/virtualtable-rpg-ds/releases)
+[Release notes and GitHub releases](https://github.com/LostInTheBugs/virtualtable-rpg-ds/releases)
 
-## Structure du projet
+## Project structure
 
 ```
-├── backend/          — API REST + Socket.io (Node.js)
-│   ├── routes/       — Endpoints REST
-│   ├── socket/       — Handlers temps réel
-│   ├── middleware/   — Auth JWT
-│   └── schema.sql    — Schéma PostgreSQL
-├── frontend/         — Interface HTML/CSS/JS
-├── nginx/            — Configuration nginx (templates)
+├── backend/          — REST API + Socket.io (Node.js)
+│   ├── routes/       — REST endpoints
+│   ├── socket/       — Real-time handlers
+│   ├── middleware/   — JWT auth
+│   └── schema.sql    — PostgreSQL schema
+├── frontend/         — HTML/CSS/JS interface
+├── nginx/            — nginx configuration (templates)
 ├── docker-compose.yml
 ├── .env.example
-└── install.sh        — Script d'installation
+└── install.sh        — Installation script
 ```
 
-## Sécurité
+## Security
 
-- `.env` n'est **jamais** commité (exclu par `.gitignore`)
-- Tous les secrets sont générés aléatoirement à l'installation
-- HTTPS obligatoire via Let's Encrypt
-- JWT pour l'authentification
+- `.env` is **never** committed (excluded by `.gitignore`)
+- All secrets are randomly generated at installation
+- HTTPS mandatory via Let's Encrypt
+- JWT for authentication
 
 ## Development cost (LLM)
 
@@ -126,6 +126,6 @@ This project was built entirely through AI-assisted sessions (Hermes Agent, deep
 
 Full breakdown: [TOKENS.md](TOKENS.md).
 
-## Licence
+## License
 
-Usage personnel / auto-hébergement.
+Personal use / self-hosting.
