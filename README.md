@@ -26,8 +26,8 @@ Self-hosted online tabletop RPG (VTT).
 ### Install
 
 ```bash
-git clone https://github.com/LostInTheBugs/virtualtable-rpg.git
-cd virtualtable-rpg
+git clone https://github.com/LostInTheBugs/virtualtable-rpg-ds.git
+cd virtualtable-rpg-ds
 sudo ./install.sh
 ```
 
