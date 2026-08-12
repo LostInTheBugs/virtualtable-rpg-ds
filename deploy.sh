@@ -21,7 +21,7 @@ cd "$SCRIPT_DIR"
 # ── 0. Vérifications ──────────────────────────────────────────
 command -v docker &>/dev/null || error "Docker n'est pas installé."
 command -v git    &>/dev/null || error "Git n'est pas installé."
-docker-compose --version &>/dev/null || error "docker-compose est requis."
+docker compose version &>/dev/null || error "docker compose (v2) est requis."
 
 [[ ! -d .git ]] && error "Ce dossier n'est pas un dépôt git."
 [[ ! -f .env  ]] && error "Fichier .env introuvable."
@@ -30,6 +30,9 @@ set -a; source .env; set +a
 
 # ── 1. Constantes ──────────────────────────────────────────────
 COMPOSE_FILE="docker-compose.deploy.yml"
+# Project name FORCÉ : compose v2 dériverait un hash différent du nom du
+# dossier et perdrait le volume de données (app_rpg-db) au recreate.
+COMPOSE_PROJECT="app"
 APACHE_DOCROOT="/home/website-vtt/html"
 FRONTEND_SRC="frontend"
 
@@ -43,13 +46,16 @@ echo ""
 COMMIT_BEFORE=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
 info "Version actuelle : ${COMMIT_BEFORE:0:8}"
 
-# ── 3. Vérifier les modifications locales ──────────────────────
+# ── 3. Préserver les modifications locales ─────────────────────
+# Elles sont stashées AVANT le merge et réappliquées après (pop),
+# au lieu d'être écrasées. En cas de conflit au pop, le stash est
+# conservé (git stash list) et le déploiement continue.
+STASH_LABEL="deploy-$(date +%Y%m%d-%H%M%S)"
 if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
-  warn "Des modifications locales sont présentes :"
+  warn "Des modifications locales sont présentes, elles seront stashées :"
   git status --short
-  echo ""
-  read -rp "$(echo -e "${YELLOW}Continuer et écraser ces modifications ? [o/N] :${NC} ")" CONFIRM
-  [[ "${CONFIRM,,}" != "o" ]] && echo "Annulé." && exit 0
+  git stash push -m "$STASH_LABEL" 2>&1 || error "Impossible de stasher les modifications locales."
+  success "Modifications locales stashées (\"$STASH_LABEL\")."
 fi
 
 # ── 4. Télécharger les mises à jour ────────────────────────────
@@ -60,6 +66,11 @@ COMMIT_REMOTE=$(git rev-parse origin/main 2>/dev/null || echo "")
 
 if [[ "$COMMIT_BEFORE" == "$COMMIT_REMOTE" ]]; then
   success "Déjà à jour (version ${COMMIT_BEFORE:0:8})."
+  # Sécurité : si le backend est arrêté, on le relance quand même
+  if ! docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" ps rpg 2>/dev/null | grep -q "Up"; then
+    warn "Backend arrêté — relance..."
+    docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" up -d rpg
+  fi
   echo ""
   exit 0
 fi
@@ -98,6 +109,17 @@ git merge --ff-only origin/main 2>&1 || {
 }
 success "Code mis à jour vers $(git rev-parse --short HEAD)."
 
+# Réapplique les modifications locales stashées
+if git stash list 2>/dev/null | grep -q "$STASH_LABEL"; then
+  info "Réapplication des modifications locales stashées..."
+  if git stash pop 2>&1; then
+    success "Modifications locales réappliquées."
+  else
+    warn "Conflit au pop du stash — il est conservé : git stash list"
+    warn "Les fichiers du dépôt sont à jour (le déploiement continue)."
+  fi
+fi
+
 # ── 8. Nouvelles cartes par défaut ────────────────────────────
 if $MAPS_CHANGED && [[ -d frontend/maps ]]; then
   COPIED=0
@@ -112,8 +134,8 @@ fi
 # ── 9. Migration du schéma DB ─────────────────────────────────
 if $SCHEMA_CHANGED; then
   info "Migration du schéma de base de données..."
-  if [[ "${COMPOSE_PROFILES:-}" == *db* ]] || docker-compose -f "$COMPOSE_FILE" ps -q rpg-db &>/dev/null; then
-    docker-compose -f "$COMPOSE_FILE" exec -T rpg-db psql -U rpg rpg < backend/schema.sql 2>/dev/null \
+  if [[ "${COMPOSE_PROFILES:-}" == *db* ]] || docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" ps -q rpg-db &>/dev/null; then
+    docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" exec -T rpg-db psql -U rpg rpg < backend/schema.sql 2>/dev/null \
       && success "Schéma migré." \
       || warn "Migration partielle — vérifiez les logs."
   elif command -v psql &>/dev/null && [[ -n "${DATABASE_URL:-}" ]]; then
@@ -128,24 +150,30 @@ fi
 # ── 10. Copier le frontend vers Apache ─────────────────────────
 if $FRONTEND_CHANGED || $MAPS_CHANGED; then
   info "Copie du frontend vers Apache (${APACHE_DOCROOT})..."
-  cp -r "${FRONTEND_SRC}/"* "${APACHE_DOCROOT}/"
+  # rsync si dispo (n'exclut JAMAIS uploads/ : les fichiers des utilisateurs
+  # vivent dans le DocumentRoot et ne doivent pas être écrasés) ; sinon cp.
+  if command -v rsync &>/dev/null; then
+    rsync -a --exclude 'uploads/' "${FRONTEND_SRC}/" "${APACHE_DOCROOT}/"
+  else
+    cp -r "${FRONTEND_SRC}/"* "${APACHE_DOCROOT}/"
+  fi
   success "Frontend copié."
 fi
 
 # ── 11. Redémarrage du backend ────────────────────────────────
 if $BACKEND_CHANGED; then
   info "Rebuild et redémarrage du backend..."
-  docker-compose -f "$COMPOSE_FILE" up -d --build rpg
+  docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" up -d --build rpg
   # Attendre que le backend soit prêt
   MAX=20; i=0
-  until docker-compose -f "$COMPOSE_FILE" exec -T rpg wget -qO- "http://localhost:${RPG_PORT:-8007}/rpg/api/health" &>/dev/null; do
+  until docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" exec -T rpg wget -qO- "http://localhost:${RPG_PORT:-8007}/rpg/api/health" &>/dev/null; do
     sleep 2; i=$((i+1))
-    [[ $i -ge $MAX ]] && error "Le backend ne répond pas. Vérifiez : docker-compose -f $COMPOSE_FILE logs rpg"
+    [[ $i -ge $MAX ]] && error "Le backend ne répond pas. Vérifiez : docker compose -p $COMPOSE_PROJECT -f $COMPOSE_FILE logs rpg"
   done
   success "Backend redémarré."
-elif docker-compose -f "$COMPOSE_FILE" ps rpg 2>/dev/null | grep -qv "Up"; then
+elif ! docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" ps rpg 2>/dev/null | grep -q "Up"; then
   warn "Backend arrêté — redémarrage..."
-  docker-compose -f "$COMPOSE_FILE" up -d rpg
+  docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" up -d rpg
 fi
 
 # ── 12. Résumé ─────────────────────────────────────────────────
@@ -155,5 +183,5 @@ echo -e "${GREEN}║   ✅  Mise à jour terminée !                         ║
 echo -e "${GREEN}╚══════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "  Version : ${CYAN}${COMMIT_BEFORE:0:8}${NC} → ${GREEN}$(git rev-parse --short HEAD)${NC}"
-echo -e "  Backend : ${CYAN}docker-compose -f ${COMPOSE_FILE} logs -f rpg${NC}"
+echo -e "  Backend : ${CYAN}docker compose -p ${COMPOSE_PROJECT} -f ${COMPOSE_FILE} logs -f rpg${NC}"
 echo ""
