@@ -213,3 +213,14 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS tier VARCHAR(20) DEFAULT 'player';
 
 -- ── Colonnes dessin sur carte ─────────────────────────────────
 ALTER TABLE maps ADD COLUMN IF NOT EXISTS drawings JSONB DEFAULT '[]';
+
+-- ── Fichiers uploadés ──────────────────────────────────────
+CREATE TABLE IF NOT EXISTS uploads (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  filename   VARCHAR(255) NOT NULL,
+  taille     BIGINT NOT NULL,
+  mime       VARCHAR(100),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_uploads_user ON uploads(user_id);
