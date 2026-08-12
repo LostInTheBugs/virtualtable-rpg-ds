@@ -2,7 +2,7 @@ const router = require('express').Router();
 const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const db = require('../db');
-const { authMiddleware, requireTier } = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
 
 // Code d'invitation : entropie cryptographique (8 caractères hexa), pas de Math.random
@@ -42,7 +42,9 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // POST /rpg/api/campaigns — créer une campagne
-router.post('/', authMiddleware, requireTier('creator'), async (req, res) => {
+// Tout membre connecté peut créer (comportement historique) — le tier 'creator'
+// n'est pas requis ici, sinon les nouveaux joueurs ne peuvent jamais créer.
+router.post('/', authMiddleware, async (req, res) => {
   const { name, description, system } = req.body;
   if (!name) return res.status(400).json({ error: 'Nom requis' });
 
