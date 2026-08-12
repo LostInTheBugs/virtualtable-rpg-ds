@@ -1,7 +1,11 @@
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET === 'change-me-in-production') {
+  console.error('[FATAL] JWT_SECRET manquant ou valeur par défaut — démarrage refusé (auth)');
+  process.exit(1);
+}
 
 function authMiddleware(req, res, next) {
   const header = req.headers.authorization;
