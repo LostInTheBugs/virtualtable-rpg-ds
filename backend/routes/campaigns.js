@@ -1,11 +1,26 @@
 const router = require('express').Router();
+const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 const db = require('../db');
 const { authMiddleware, requireTier } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
 
+// Code d'invitation : entropie cryptographique (8 caractères hexa), pas de Math.random
 function genCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  return crypto.randomBytes(4).toString('hex').toUpperCase();
 }
+
+// Rate limit : 10 tentatives de rejoint / 15 min par IP (anti brute-force des codes)
+const joinLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.warn(`[RATE LIMIT] Join bloqué pour ${req.ip}`);
+    res.status(429).json({ error: 'Trop de tentatives. Réessayez dans quelques minutes.' });
+  },
+});
 
 // GET /rpg/api/campaigns — mes campagnes
 router.get('/', authMiddleware, async (req, res) => {
@@ -67,7 +82,7 @@ router.post('/', authMiddleware, requireTier('creator'), async (req, res) => {
 });
 
 // POST /rpg/api/campaigns/join — rejoindre via code
-router.post('/join', authMiddleware, async (req, res) => {
+router.post('/join', joinLimiter, authMiddleware, async (req, res) => {
   const { invite_code } = req.body;
   if (!invite_code) return res.status(400).json({ error: 'Code requis' });
 
