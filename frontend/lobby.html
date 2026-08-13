@@ -540,9 +540,10 @@ function onLobbyComboSel(field) {
       }
       // Afficher le lien animation si disponible
       const animLink = document.getElementById('ch-anim-link');
-      // Priorité au MP4 Grok (meilleure qualité), fallback GIF
-      const animPaths = [`/img/${imgKey}-i2v.mp4`, `/img/${imgKey}-grok.mp4`, `/img/${imgKey}-anim.gif`];
-      // Cherche l'animation dispo (I2V > Grok > GIF)
+      // Priorité au MP4 Grok (meilleure qualité), puis I2V, fallback GIF
+      // (l'I2V de Chat de gouttière montrait un mauvais chat — grok en premier)
+      const animPaths = [`/img/${imgKey}-grok.mp4`, `/img/${imgKey}-i2v.mp4`, `/img/${imgKey}-anim.gif`];
+      // Cherche l'animation dispo (Grok > I2V > GIF)
       function tryAnim(idx) {
         if (idx >= animPaths.length || !animLink) return;
         fetch(animPaths[idx], { method: 'HEAD' }).then(r => {

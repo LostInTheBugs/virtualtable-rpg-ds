@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026.08.002 (2026-08-13)
+
+### Corrections
+- **Animation des portraits de races (Cats! La Mascarade)** : l'animation proposée pour « Chat de gouttière » ne correspondait pas au portrait (mauvais asset I2V : chat roux cartoon à écharpe violette). Priorité des animations inversée en `Grok > I2V > GIF` (le code contredisait son propre commentaire qui annonçait déjà le MP4 Grok en premier), et vidéo I2V du Vagabond **régénérée depuis le portrait** (LTX 0.9.5) — l'animation montre désormais le même chat tigré brun aventurier que le portrait.
+
 ## 2026.08.001-c1 (2026-08-12)
 
 Fusion des travaux en attente + durcissement sécurité. Port par défaut : **8007** (`RPG_PORT` surchargeable — la prod utilise `PORT=3001`).
