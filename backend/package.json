@@ -1,6 +1,6 @@
 {
   "name": "virtualtable-rpg-backend",
-  "version": "2026.08.006",
+  "version": "2026.08.008",
   "description": "Roll20-like VirtualTable RPG backend",
   "main": "server.js",
   "scripts": {

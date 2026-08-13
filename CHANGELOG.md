@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.08.008 (2026-08-13)
+
+### Ajouts
+- **Animations vidéo (I2V) pour les 108 races** : chaque race des 15 systèmes a maintenant son animation générée (LTX 0.9.5, ~2 s, 512×512) — le lien « Animation » apparaît automatiquement au choix de la race, en complément des 7 races Cats déjà animées (115 races animées au total).
+- ComfyUI du lab stabilisé : mise à jour 0.32.0 + `--disable-cuda-malloc` + watchdog RAM + swap 11 GB (plus de segfaults sous charge, 108 jobs d'affilée sans incident).
+
 ## 2026.08.006 (2026-08-13)
 
 ### Ajouts
