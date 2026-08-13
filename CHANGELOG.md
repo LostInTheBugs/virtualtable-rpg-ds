@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.08.004 (2026-08-13)
+
+### Ajouts
+- **Portraits automatiques pour toutes les races** : 108 portraits IA générés (RealVisXL) couvrant les 15 systèmes (D&D 5e, Pathfinder 2e, Warhammer Fantasy, Call of Cthulhu, Starfinder, Shadowrun, Vampire : La Mascarade, Cyberpunk Red, Savage Worlds, Dune, Star Wars, Le Seigneur des Anneaux, Paranoia, Tomorrow City). À la création de personnage, sélectionner une race remplit automatiquement le portrait. Nouvelle map `SYSTEM_RACE_PORTRAITS` (lobby.html) remplaçant la map Cats locale.
+- **Vidéos d'intro par système** : 15 cinématiques LTX générées (château fantasy, mégapole cyberpunk, désert d'Arrakis, nefs spatiales…) affichées au premier lancement de campagne via `SYSTEM_INTRO_VIDEOS`.
+
 ## 2026.08.002-c1 (2026-08-13)
 
 ### Ajouts

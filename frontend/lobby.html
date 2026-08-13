@@ -488,6 +488,154 @@ function systemRaces()  { return getSystemRaces(currentCampaignSystem); }
 function systemClasses() { return getSystemClasses(currentCampaignSystem); }
 function systemDef()    { return getSystem(currentCampaignSystem); }
 
+const SYSTEM_RACE_PORTRAITS = {
+  "D&D 5e": {
+    "Humain": "dnd5e-humain",
+    "Elfe": "dnd5e-elfe",
+    "Elfe des bois": "dnd5e-elfe-des-bois",
+    "Elfe de haute noblesse": "dnd5e-elfe-de-haute-noblesse",
+    "Elfe noir (Drow)": "dnd5e-elfe-noir-drow",
+    "Nain des collines": "dnd5e-nain-des-collines",
+    "Nain des montagnes": "dnd5e-nain-des-montagnes",
+    "Halfelin": "dnd5e-halfelin",
+    "Gnome des forêts": "dnd5e-gnome-des-forets",
+    "Gnome des roches": "dnd5e-gnome-des-roches",
+    "Demi-Elfe": "dnd5e-demi-elfe",
+    "Demi-Orc": "dnd5e-demi-orc",
+    "Tieffelin": "dnd5e-tieffelin",
+    "Dragonien": "dnd5e-dragonien",
+    "Aasimar": "dnd5e-aasimar",
+    "Goliath": "dnd5e-goliath",
+    "Triton": "dnd5e-triton",
+    "Tabaxi": "dnd5e-tabaxi",
+    "Kenku": "dnd5e-kenku",
+    "Lizardfolk": "dnd5e-lizardfolk",
+    "Tortle": "dnd5e-tortle",
+    "Firbolg": "dnd5e-firbolg",
+    "Yuan-ti Pureblooded": "dnd5e-yuan-ti-pureblooded",
+  },
+  "Pathfinder 2e": {
+    "Humain": "pf2-humain",
+    "Elfe": "pf2-elfe",
+    "Nain": "pf2-nain",
+    "Halfelin": "pf2-halfelin",
+    "Gnome": "pf2-gnome",
+    "Orc": "pf2-orc",
+    "Gobelin": "pf2-gobelin",
+    "Kobold": "pf2-kobold",
+    "Ratelin": "pf2-ratelin",
+    "Catfolk": "pf2-catfolk",
+    "Lézardfolk": "pf2-lezardfolk",
+    "Tengu": "pf2-tengu",
+    "Demi-Orc": "pf2-demi-orc",
+    "Demi-Elfe": "pf2-demi-elfe",
+  },
+  "Warhammer Fantasy": {
+    "Humain": "wh-humain",
+    "Nain": "wh-nain",
+    "Elfe": "wh-elfe",
+    "Halfelin": "wh-halfelin",
+    "Haut Elfe": "wh-haut-elfe",
+    "Elfe sylvain": "wh-elfe-sylvain",
+    "Nain des montagnes": "wh-nain-des-montagnes",
+    "Nain des forets": "wh-nain-des-forets",
+  },
+  "Call of Cthulhu": {
+    "Humain": "coc-humain",
+  },
+  "Starfinder": {
+    "Humain": "sf-humain",
+    "Androïde": "sf-androide",
+    "Ysoki": "sf-ysoki",
+    "Kasatha": "sf-kasatha",
+    "Shirren": "sf-shirren",
+    "Vesk": "sf-vesk",
+    "Lashunta": "sf-lashunta",
+  },
+  "Shadowrun": {
+    "Humain": "sr-humain",
+    "Elfe": "sr-elfe",
+    "Nain": "sr-nain",
+    "Orc": "sr-orc",
+    "Troll": "sr-troll",
+  },
+  "Vampire: The Masquerade": {
+    "Brujah": "vtm-brujah",
+    "Gangrel": "vtm-gangrel",
+    "Malkavien": "vtm-malkavien",
+    "Nosferatu": "vtm-nosferatu",
+    "Toreador": "vtm-toreador",
+    "Tremere": "vtm-tremere",
+    "Ventrue": "vtm-ventrue",
+    "Assamite": "vtm-assamite",
+    "Giovanni": "vtm-giovanni",
+    "Ravnos": "vtm-ravnos",
+    "Setite": "vtm-setite",
+    "Tzimisce": "vtm-tzimisce",
+    "Lasombra": "vtm-lasombra",
+  },
+  "Cyberpunk Red": {
+    "Humain": "cp-humain",
+  },
+  "Savage Worlds": {
+    "Humain": "sav-humain",
+  },
+  "Dune": {
+    "Humain": "dune-humain",
+    "Bene Gesserit": "dune-bene-gesserit",
+    "Mentat": "dune-mentat",
+    "Sardaukar": "dune-sardaukar",
+    "Fremen": "dune-fremen",
+    "Navigateur": "dune-navigateur",
+    "Ixien": "dune-ixien",
+  },
+  "Star Wars": {
+    "Humain": "swars-humain",
+    "Wookiee": "swars-wookiee",
+    "Twi lek": "swars-twi-lek",
+    "Droid": "swars-droid",
+    "Zabrak": "swars-zabrak",
+    "Bothan": "swars-bothan",
+    "Mon Calamari": "swars-mon-calamari",
+    "Rodian": "swars-rodian",
+    "Trandoshan": "swars-trandoshan",
+    "Céréen": "swars-cereen",
+    "Ewok": "swars-ewok",
+    "Mandalorien": "swars-mandalorien",
+    "Chiss": "swars-chiss",
+  },
+  "Le Seigneur des Anneaux": {
+    "Humain": "sda-humain",
+    "Elfe": "sda-elfe",
+    "Nain": "sda-nain",
+    "Hobbit": "sda-hobbit",
+    "Bardien": "sda-bardien",
+    "Béornide": "sda-beornide",
+    "Homme du Sud": "sda-homme-du-sud",
+    "Rohirrim": "sda-rohirrim",
+    "Gondorien": "sda-gondorien",
+  },
+  "Paranoia": {
+    "Humain": "paranoia-humain",
+    "Clone Alpha": "paranoia-clone-alpha",
+    "Clone Beta": "paranoia-clone-beta",
+    "Clone Gamma": "paranoia-clone-gamma",
+    "Clone Delta": "paranoia-clone-delta",
+  },
+  "Tomorrow City": {
+    "Humain": "tc-humain",
+  },
+  "Cats! La Mascarade": {
+    "Chat de gouttière": "cats-vagabond",
+    "Siamois": "cats-siamois",
+    "Persan": "cats-persan",
+    "Maine Coon": "cats-maine-coon",
+    "Bengal": "cats-bengal",
+    "Sphynx": "cats-sphynx",
+    "Européen": "cats-europeen",
+  },
+};
+
 // ── Combo-select helpers ────────────────────────────────────────
 function buildLobbyComboOptions(selId, options, currentVal) {
   const sel = document.getElementById(selId);
@@ -520,16 +668,8 @@ function onLobbyComboSel(field) {
   // Auto-portrait + animation quand on sélectionne une race
   if (field === 'race' && sel.value !== '__custom__' && sel.value) {
     const race = sel.value;
-    // Carte de correspondance race → fichier image
-    const raceImages = {
-      'Chat de gouttière': 'cats-vagabond',
-      'Siamois': 'cats-siamois',
-      'Persan': 'cats-persan',
-      'Maine Coon': 'cats-maine-coon',
-      'Bengal': 'cats-bengal',
-      'Sphynx': 'cats-sphynx',
-      'Européen': 'cats-europeen',
-    };
+    // Carte de correspondance race → fichier image (par système de jeu)
+    const raceImages = SYSTEM_RACE_PORTRAITS[currentCampaignSystem] || {};
     const imgKey = raceImages[race];
     if (imgKey) {
       const portraitUrl = `/img/${imgKey}-portrait.jpg`;

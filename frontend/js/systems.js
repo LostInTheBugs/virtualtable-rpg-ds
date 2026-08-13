@@ -560,7 +560,21 @@ const RPG_SYSTEMS = {
 // URL vers un GIF/MP4 d'intro cinématique, affiché au premier lancement de campagne
 const SYSTEM_INTRO_VIDEOS = {
   "Cats! La Mascarade": "/img/cats-intro.mp4",
-  // Les autres systèmes seront ajoutés au fur et à mesure
+  "D&D 5e": "/img/dnd5e-intro.mp4",
+  "Pathfinder 2e": "/img/pf2-intro.mp4",
+  "Warhammer Fantasy": "/img/wh-intro.mp4",
+  "Call of Cthulhu": "/img/coc-intro.mp4",
+  "Starfinder": "/img/sf-intro.mp4",
+  "Shadowrun": "/img/sr-intro.mp4",
+  "Vampire: The Masquerade": "/img/vtm-intro.mp4",
+  "Cyberpunk Red": "/img/cp-intro.mp4",
+  "Savage Worlds": "/img/sav-intro.mp4",
+  "Dune": "/img/dune-intro.mp4",
+  "Star Wars": "/img/swars-intro.mp4",
+  "Le Seigneur des Anneaux": "/img/sda-intro.mp4",
+  "Paranoia": "/img/paranoia-intro.mp4",
+  "Tomorrow City": "/img/tc-intro.mp4",
+  "Autre": "/img/autre-intro.mp4",
 };
 
 // ── Alias de compatibilité (campagnes créées avant renommage) ─
