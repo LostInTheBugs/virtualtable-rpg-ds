@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026.08.002-c1 (2026-08-13)
+
+### Ajouts
+- **Animations I2V pour toutes les races de Cats! La Mascarade** : vidéos LTX 0.9.5 générées depuis les portraits pour Persan, Maine Coon, Bengal, Sphynx et Européen (le lien « 🎬 Animation (LTX) » de création de personnage fonctionne désormais pour les 7 races).
+
 ## 2026.08.002 (2026-08-13)
 
 ### Corrections
