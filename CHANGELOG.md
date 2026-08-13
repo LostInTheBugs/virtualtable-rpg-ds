@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026.08.006 (2026-08-13)
+
+### Ajouts
+- **Portraits automatiques pour toutes les classes** : 142 portraits IA générés (RealVisXL) couvrant les 15 systèmes (Barbare, Magicien, Jedi, Decker, Nosferatu Ancilla…). À la création de personnage, sélectionner une classe remplit aussi automatiquement le portrait (dernier choix gagnant). Nouvelle map `SYSTEM_CLASS_PORTRAITS` (lobby.html) ; 3 classes réutilisent leur portrait de race (Vagabond Cats, Mentat et Bene Gesserit Dune).
+
+### Technique
+- Génération IA en lots résilients (le lab a subi 2 segfaults ComfyUI sous charge — reprise automatique par lots de 20 avec vérification des fichiers).
+
 ## 2026.08.004 (2026-08-13)
 
 ### Ajouts
